@@ -34,7 +34,7 @@ Then restart Codex Desktop so skills are reloaded.
 Use this payload when starting a run in Codex:
 
 ```md
-@pipeline-runner
+Use pipeline-runner with this payload:
 JIRA_KEY: <ISSUE-ID>
 JIRA_URL: https://your-domain.atlassian.net/browse/<ISSUE-ID>
 FIGMA_URL: https://www.figma.com/design/<fileKey>/<name>?node-id=<id>
@@ -42,8 +42,15 @@ FIGMA_NODE_IDS: 12:34,56:78
 REPO_PATH: /absolute/path/to/repo
 TARGET_BASE_BRANCH: dev|develop|development
 NOTIFY_GOOGLE_CHAT: true
-RUN_MODE: DRY_RUN
+RUN_MODE: REAL_RUN | DRY_RUN
 ```
+
+`@pipeline-runner` can still work in some contexts, but plain text invocation is the recommended/default format.
+
+### RUN_MODE explained
+- `REAL_RUN`: executes the real workflow against the repository path you provide.
+- `DRY_RUN`: simulates the flow and produces artifacts/contracts without performing real repository changes.
+- If omitted, use `REAL_RUN` by default unless you explicitly request a simulation.
 
 ## Commit and MR policy highlights
 - No automatic commit/push/merge by default.
