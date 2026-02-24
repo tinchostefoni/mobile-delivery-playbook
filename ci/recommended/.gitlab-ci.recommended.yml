@@ -1,0 +1,32 @@
+stages:
+  - validate
+
+commit_format_check:
+  stage: validate
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache git bash grep sed
+  script:
+    - bash ci/recommended/scripts/check_commit_messages.sh
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+mr_title_check:
+  stage: validate
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache bash grep sed
+  script:
+    - bash ci/recommended/scripts/check_mr_title.sh
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+changelog_check:
+  stage: validate
+  image: alpine:3.20
+  before_script:
+    - apk add --no-cache git bash grep sed
+  script:
+    - bash ci/recommended/scripts/check_changelog.sh
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'

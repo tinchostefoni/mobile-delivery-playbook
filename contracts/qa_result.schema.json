@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zafirus.tech/contracts/qa_result.schema.json",
+  "title": "qa_result",
+  "type": "object",
+  "required": [
+    "meta",
+    "ticket_key",
+    "overall",
+    "checks",
+    "regressions",
+    "recommendation",
+    "merge_gates",
+    "mergeable"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["contract_version", "generated_at", "agent"],
+      "additionalProperties": false,
+      "properties": {
+        "contract_version": { "const": "1.0.0" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "agent": { "type": "string", "enum": ["ui-fidelity-qa", "qa-retro"] }
+      }
+    },
+    "ticket_key": { "type": "string" },
+    "overall": { "type": "string", "enum": ["pass", "fail", "warning"] },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "result"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "result": { "type": "string", "enum": ["pass", "fail", "skipped"] },
+          "details": { "type": "string" }
+        }
+      }
+    },
+    "regressions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "severity"],
+        "additionalProperties": false,
+        "properties": {
+          "title": { "type": "string" },
+          "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+          "path": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "recommendation": {
+      "type": "object",
+      "required": ["action", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "action": { "type": "string", "enum": ["ready_for_review", "needs_changes", "blocked"] },
+        "reason": { "type": "string" }
+      }
+    },
+    "merge_gates": {
+      "type": "object",
+      "required": ["all_tests_green", "qa_approved", "changelog_updated"],
+      "additionalProperties": false,
+      "properties": {
+        "all_tests_green": { "type": "boolean" },
+        "qa_approved": { "type": "boolean" },
+        "changelog_updated": { "type": "boolean" }
+      }
+    },
+    "mergeable": {
+      "type": "boolean",
+      "description": "True only when all_tests_green, qa_approved, and changelog_updated are true."
+    }
+  }
+}

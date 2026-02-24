@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zafirus.tech/contracts/implementation_result.schema.json",
+  "title": "implementation_result",
+  "type": "object",
+  "required": ["meta", "ticket_key", "status", "files_changed", "validations", "notes", "changelog"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["contract_version", "generated_at", "agent"],
+      "additionalProperties": false,
+      "properties": {
+        "contract_version": { "const": "1.0.0" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "agent": { "type": "string", "const": "dev-executor" }
+      }
+    },
+    "ticket_key": { "type": "string" },
+    "status": { "type": "string", "enum": ["done", "blocked", "partial"] },
+    "files_changed": { "type": "array", "items": { "type": "string" } },
+    "validations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "command", "result"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string" },
+          "command": { "type": "string" },
+          "result": { "type": "string", "enum": ["pass", "fail", "skipped"] },
+          "evidence": { "type": "string" }
+        }
+      }
+    },
+    "notes": {
+      "type": "object",
+      "required": ["summary", "risks", "assumptions"],
+      "additionalProperties": false,
+      "properties": {
+        "summary": { "type": "string" },
+        "risks": { "type": "array", "items": { "type": "string" } },
+        "assumptions": { "type": "array", "items": { "type": "string", "pattern": "^ASSUMPTION:" } }
+      }
+    },
+    "changelog": {
+      "type": "object",
+      "required": ["file", "updated", "section", "entries"],
+      "additionalProperties": false,
+      "properties": {
+        "file": { "type": "string", "pattern": "CHANGELOG\\.md$" },
+        "updated": { "type": "boolean" },
+        "section": { "type": "string", "const": "Unreleased" },
+        "entries": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}

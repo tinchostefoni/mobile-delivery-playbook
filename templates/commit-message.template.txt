@@ -1,0 +1,5 @@
+<type>(<scope>): [<ISSUE-ID>] <short description>
+
+# examples:
+# feat(auth): [LSF-673] agregar validación de autoexclusión
+# fix(networking): [LSF-649] corregir reintento en timeout de login
