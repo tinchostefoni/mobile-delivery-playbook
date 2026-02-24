@@ -23,8 +23,8 @@ Use this payload when starting a run in Codex:
 
 ```md
 @pipeline-runner
-JIRA_KEY: LSF-XXX
-JIRA_URL: https://zafirus.atlassian.net/browse/LSF-XXX
+JIRA_KEY: <ISSUE-ID>
+JIRA_URL: https://your-domain.atlassian.net/browse/<ISSUE-ID>
 FIGMA_URL: https://www.figma.com/design/<fileKey>/<name>?node-id=<id>
 FIGMA_NODE_IDS: 12:34,56:78
 REPO_PATH: /absolute/path/to/repo
@@ -71,9 +71,9 @@ Example:
 
 ```bash
 scripts/notify_google_chat.sh \
-  "LSF-649" "READY_FOR_REVIEW" \
+  "PROJECT-123" "READY_FOR_REVIEW" \
   "Local gates passed, waiting your command" \
-  "https://zafirus.atlassian.net/browse/LSF-649"
+  "https://your-domain.atlassian.net/browse/PROJECT-123"
 ```
 
 ## Notes

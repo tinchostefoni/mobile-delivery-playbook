@@ -4,8 +4,8 @@
 Use this exact payload format when starting a run:
 
 ```md
-JIRA_KEY: LSF-XXX
-JIRA_URL: https://zafirus.atlassian.net/browse/LSF-XXX
+JIRA_KEY: <ISSUE-ID>
+JIRA_URL: https://your-domain.atlassian.net/browse/<ISSUE-ID>
 FIGMA_URL: https://www.figma.com/design/<fileKey>/<name>?node-id=<id>
 FIGMA_NODE_IDS: 12:34,56:78
 REPO_PATH: /absolute/path/to/repo

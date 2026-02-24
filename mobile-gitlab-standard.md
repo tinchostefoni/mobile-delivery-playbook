@@ -8,7 +8,7 @@ Base format:
 `<type>(<scope>): [<ISSUE-ID>] <short description>`
 
 Example:
-`fix(networking): [LSF-649] corrigió el reintento ante timeout en login`
+`fix(networking): [PROJECT-123] corrigió el reintento ante timeout en login`
 
 Mandatory rules:
 - `type` is required.
@@ -38,8 +38,8 @@ Kinds:
 - `feature`, `fix`, `hotfix`, `chore`
 
 Examples:
-- `LSF-649-fix-login-timeout-retry`
-- `LSF-673-feature-self-exclusion-flow`
+- `PROJECT-123-fix-login-timeout-retry`
+- `PROJECT-456-feature-self-exclusion-flow`
 
 Before creating any new branch, always:
 1. Checkout base branch (`dev`, `develop`, or `development`, depending on project).
@@ -67,7 +67,7 @@ MR title format (mandatory):
 `[<ISSUE-ID>] <type>: <short explanation>`
 
 Example:
-`[LSF-649] fix: corrigió el reintento ante timeout en login`
+`[PROJECT-123] fix: corrigió el reintento ante timeout en login`
 
 Allowed MR types:
 - `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
