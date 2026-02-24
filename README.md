@@ -9,6 +9,7 @@ It includes:
 - Reusable templates for commit messages and merge requests.
 - Google Chat notification integration.
 - Recommended GitLab CI checks.
+- Bundled Codex skills for portable setup.
 
 ## Repository structure
 - `mobile-gitlab-standard.md`: global standards (authoritative).
@@ -17,6 +18,17 @@ It includes:
 - `templates/`: commit and MR templates.
 - `scripts/notify_google_chat.sh`: outbound notification script.
 - `ci/recommended/`: recommended CI pipeline and validation scripts.
+- `skills/`: bundled custom skills used by this playbook.
+- `scripts/install_skills.sh`: local installer for bundled skills.
+
+## Install bundled skills
+Run from this repository root:
+
+```bash
+bash scripts/install_skills.sh
+```
+
+Then restart Codex Desktop so skills are reloaded.
 
 ## Canonical run input
 Use this payload when starting a run in Codex:
