@@ -10,8 +10,8 @@ Use this skill to create or update project-level configuration consumed by `pipe
 ## UX policy (chat-first)
 - The user should only provide a payload in chat.
 - Do not require terminal commands from the user.
-- Internally, run `scripts/bootstrap_playbook_setup.sh` (or equivalent logic) to auto-detect context and generate setup files.
-- Immediately after setup, run `scripts/preflight_pipeline_runner.sh --mode setup ...` and fail if validation fails.
+- Internally, run `../.mobile-delivery-playbook-runtime/scripts/bootstrap_playbook_setup.sh` (or equivalent logic) to auto-detect context and generate setup files.
+- Immediately after setup, run `../.mobile-delivery-playbook-runtime/scripts/preflight_pipeline_runner.sh --mode setup ...` and fail if validation fails.
 - Always return generated file paths and the next `pipeline-runner` payload.
 
 ## Trigger phrase
@@ -58,7 +58,7 @@ Mode behavior:
 2. Validate `TARGET_BASE_BRANCH` exists locally or remotely.
 3. Validate `JIRA_BASE_URL` format (required) and `FIGMA_BASE_URL` format (optional).
 4. `SETUP_MODE` defaults to `INIT`.
-5. If `SETUP_MODE=UPDATE`, run `scripts/update_playbook_setup.sh` and preserve existing `context.*` values.
+5. If `SETUP_MODE=UPDATE`, run `../.mobile-delivery-playbook-runtime/scripts/update_playbook_setup.sh` and preserve existing `context.*` values.
 6. `AUTO_DETECT_CONTEXT` defaults to `true`.
 7. If `AUTO_DETECT_CONTEXT=true`, auto-detect project context and write:
    - `.codex/project_context.auto.md`

@@ -53,11 +53,11 @@ TECH_CONTEXT: |
 
 ## Preflight requirements (mandatory)
 0. Run preflight validator before any implementation step:
-   - `<PLAYBOOK_ROOT>/scripts/preflight_pipeline_runner.sh`
+   - `../.mobile-delivery-playbook-runtime/scripts/preflight_pipeline_runner.sh`
    - Use `--output-format json` when machine-readable diagnostics are needed.
 1. Load canonical workflow and contracts from playbook repo:
-   - `<PLAYBOOK_ROOT>/workflow.md`
-   - `<PLAYBOOK_ROOT>/contracts/*.schema.json`
+   - `../.mobile-delivery-playbook-runtime/workflow.md`
+   - `../.mobile-delivery-playbook-runtime/contracts/*.schema.json`
 2. Load project context paths from setup config (and auto-context files when enabled).
 3. Merge in optional task-level `TECH_CONTEXT` from runtime payload.
 4. In `REAL_RUN`, enforce branch workflow before edits:
@@ -119,7 +119,7 @@ TECH_CONTEXT: |
 ## Output expectations
 - Keep user informed with concise progress updates.
 - Keep outputs schema-compliant.
-- Generate `run_summary.md` per run mode using `<PLAYBOOK_ROOT>/scripts/generate_run_summary.sh`:
+- Generate `run_summary.md` per run mode using `../.mobile-delivery-playbook-runtime/scripts/generate_run_summary.sh`:
   - `PLAN_ONLY`: at planning completion (before `PLAN_ONLY_DONE`).
   - `REAL_RUN`/`DRY_RUN`: at pipeline close.
 - `run_summary.md` must adapt sections to `RUN_MODE` (`PLAN_ONLY` vs `REAL_RUN/DRY_RUN`).
