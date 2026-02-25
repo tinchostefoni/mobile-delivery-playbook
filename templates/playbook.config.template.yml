@@ -14,6 +14,9 @@ pipeline:
   # artifacts_path is only required when write_artifacts=true
   # artifacts_path: "<PROJECT_ROOT>/.codex/pipeline-runner"
 context:
+  # Optional. When set, this value is used as the architecture source of truth
+  # and auto-detection becomes fallback only.
+  # architecture_override: "Clean + Coordinator"
   tech_context: |
     <Architecture notes, constraints, backend contracts>
   project_context_paths:

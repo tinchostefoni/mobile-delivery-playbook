@@ -26,6 +26,7 @@ PROJECT_NAME: <name>
 JIRA_PROJECT_KEY: <e.g. LSF>
 JIRA_BASE_URL: https://your-domain.atlassian.net
 FIGMA_BASE_URL: https://www.figma.com/design/<fileKey>/<name>
+ARCHITECTURE_OVERRIDE: Clean + Coordinator
 TARGET_BASE_BRANCH: development
 NOTIFY_GOOGLE_CHAT: true
 AUTO_DETECT_CONTEXT: true

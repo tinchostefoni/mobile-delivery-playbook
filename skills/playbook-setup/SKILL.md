@@ -27,6 +27,7 @@ PROJECT_NAME: <human readable name>
 JIRA_PROJECT_KEY: <e.g. LSF>
 JIRA_BASE_URL: <required, https://your-domain.atlassian.net>
 FIGMA_BASE_URL: <optional, https://www.figma.com/design/<fileKey>/<name>>
+ARCHITECTURE_OVERRIDE: <optional, e.g. Clean + Coordinator>
 TARGET_BASE_BRANCH: <dev|develop|development>
 NOTIFY_GOOGLE_CHAT: <true|false>
 AUTO_DETECT_CONTEXT: <true|false>
@@ -62,8 +63,9 @@ Mode behavior:
 7. If `AUTO_DETECT_CONTEXT=true`, auto-detect project context and write:
    - `.codex/project_context.auto.md`
    - `.codex/project_context_paths.auto.txt`
-8. If `AUTO_DETECT_CONTEXT=false`, do not overwrite auto-detected context files.
-9. Write/update `.codex/playbook.config.yml` with:
+8. If `ARCHITECTURE_OVERRIDE` is provided, use it as architecture source of truth and treat detector output as fallback.
+9. If `AUTO_DETECT_CONTEXT=false`, do not overwrite auto-detected context files.
+10. Write/update `.codex/playbook.config.yml` with:
    - `project.name`
    - `project.repo_path`
    - `project.jira_project_key`
@@ -74,12 +76,13 @@ Mode behavior:
    - `pipeline.auto_detect_context`
    - `pipeline.write_artifacts`
    - `pipeline.artifacts_path` only when `WRITE_ARTIFACTS=true`
+   - `context.architecture_override` when provided
    - `context.tech_context`
    - `context.project_context_paths`
-10. Keep values explicit and human-editable.
-11. Preserve existing keys not provided by the user.
-12. Run preflight in setup mode right after writing config/update.
-13. After successful preflight, return a ready-to-run `pipeline-runner` payload.
+11. Keep values explicit and human-editable.
+12. Preserve existing keys not provided by the user.
+13. Run preflight in setup mode right after writing config/update.
+14. After successful preflight, return a ready-to-run `pipeline-runner` payload.
 
 ## Recommended generated config shape
 
@@ -99,6 +102,7 @@ pipeline:
   write_artifacts: false
   artifacts_path: "/absolute/path/to/repo/.codex/pipeline-runner"
 context:
+  architecture_override: "Clean + Coordinator"
   tech_context: |
     iOS app using Coordinator + MVVM with NotificationManager-driven remote actions.
   project_context_paths:

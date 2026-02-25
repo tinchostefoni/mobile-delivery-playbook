@@ -11,6 +11,7 @@ PROJECT_NAME: <name>
 JIRA_PROJECT_KEY: <e.g. LSF>
 JIRA_BASE_URL: https://your-domain.atlassian.net
 FIGMA_BASE_URL: https://www.figma.com/design/<fileKey>/<name>
+ARCHITECTURE_OVERRIDE: <optional, e.g. Clean + Coordinator>
 TARGET_BASE_BRANCH: <dev|develop|development>
 NOTIFY_GOOGLE_CHAT: true
 AUTO_DETECT_CONTEXT: true
@@ -27,6 +28,7 @@ Notes:
 - `SETUP_MODE=INIT` bootstraps config + autodetected context.
 - `SETUP_MODE=UPDATE` updates existing global setup values without rebootstrap.
 - In `SETUP_MODE=UPDATE`, `REPO_PATH` is optional: it uses `repo_path` saved by `INIT` in `.codex/playbook.config.yml`.
+- If `ARCHITECTURE_OVERRIDE` is provided, that value is used as architecture source of truth and autodetection becomes fallback.
 - No user terminal command is required.
 - The skill auto-generates `.codex/project_context.auto.md` and `.codex/project_context_paths.auto.txt`.
 - `playbook-setup` must run preflight in `setup` mode right after writing config.

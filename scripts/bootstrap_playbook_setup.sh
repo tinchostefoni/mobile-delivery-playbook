@@ -11,6 +11,7 @@ Options:
   --jira-base-url <URL>        Jira base URL (required, example: https://your-domain.atlassian.net)
   --figma-base-url <URL>       Figma design base URL (optional, example: https://www.figma.com/design/<fileKey>/<name>)
   --project-name <NAME>        Friendly project name
+  --architecture-override <TEXT>  Optional explicit architecture label (example: Clean + Coordinator)
   --base-branch <NAME>         Base branch (dev|develop|development)
   --auto-detect-context <bool> true|false (default: true)
   --notify-google-chat <bool>  true|false (default: true)
@@ -29,6 +30,7 @@ JIRA_PROJECT_KEY=""
 JIRA_BASE_URL=""
 FIGMA_BASE_URL=""
 PROJECT_NAME=""
+ARCHITECTURE_OVERRIDE=""
 BASE_BRANCH=""
 AUTO_DETECT_CONTEXT="true"
 NOTIFY_GOOGLE_CHAT="true"
@@ -42,6 +44,7 @@ while [[ $# -gt 0 ]]; do
     --jira-base-url) JIRA_BASE_URL="${2:-}"; shift 2 ;;
     --figma-base-url) FIGMA_BASE_URL="${2:-}"; shift 2 ;;
     --project-name) PROJECT_NAME="${2:-}"; shift 2 ;;
+    --architecture-override) ARCHITECTURE_OVERRIDE="${2:-}"; shift 2 ;;
     --base-branch) BASE_BRANCH="${2:-}"; shift 2 ;;
     --auto-detect-context) AUTO_DETECT_CONTEXT="${2:-}"; shift 2 ;;
     --notify-google-chat) NOTIFY_GOOGLE_CHAT="${2:-}"; shift 2 ;;
@@ -142,12 +145,54 @@ find_first_file_by_pattern() {
   rg --files "$repo" 2>/dev/null | rg -n "$pattern" --no-line-number | head -n 1 || true
 }
 
+find_preferred_feature_file() {
+  local repo="$1"
+  local bucket_pattern="$2"
+  local preferred_features_regex='(Auth|Authentication|Login|Session|Profile|Home|Main|Account|User)'
+  local preferred
+  preferred="$(rg --files "$repo" 2>/dev/null | rg -n "/Features/${preferred_features_regex}/.*${bucket_pattern}" --no-line-number | head -n 1 || true)"
+  if [[ -n "$preferred" ]]; then
+    echo "$preferred"
+    return 0
+  fi
+  rg --files "$repo" 2>/dev/null | rg -n "/Features/.*/${bucket_pattern}" --no-line-number | head -n 1 || true
+}
+
+path_is_excluded_from_context() {
+  local p="$1"
+  [[ "$p" == *"/Service/"* ]] && return 0
+  [[ "$p" == *"/Configurations/"* ]] && return 0
+  [[ "$p" == *"/Managers/"* ]] && return 0
+  [[ "$p" == *".xcodeproj/"* ]] && return 0
+  [[ "$p" == *"/xcshareddata/"* ]] && return 0
+  [[ "$p" == *"/xcschemes/"* ]] && return 0
+  [[ "$p" == *"/Pods/"* ]] && return 0
+  return 1
+}
+
+append_unique_path() {
+  local candidate="$1"
+  local existing
+  [[ -z "$candidate" ]] && return 0
+  if path_is_excluded_from_context "$candidate"; then
+    return 0
+  fi
+  for existing in "${CONTEXT_PATHS[@]-}"; do
+    if [[ "$existing" == "$candidate" ]]; then
+      return 0
+    fi
+  done
+  CONTEXT_PATHS+=("$candidate")
+}
+
 TECH_CONTEXT_LINES=()
 declare -a CONTEXT_PATHS=()
 
 if [[ "$AUTO_DETECT_CONTEXT" == "true" ]]; then
   HAS_COORDINATOR="false"
+  HAS_CLEAN="false"
   HAS_MVVM="false"
+  HAS_SWIFTUI="false"
   HAS_NETWORKING="false"
   HAS_PUSH_NOTIF="false"
   HAS_STORAGE="false"
@@ -155,7 +200,9 @@ if [[ "$AUTO_DETECT_CONTEXT" == "true" ]]; then
   HAS_UI_TESTS="false"
 
   if rg -n "Coordinator" "$REPO_PATH" --glob '!**/.git/**' --glob '*.swift' >/dev/null 2>&1; then HAS_COORDINATOR="true"; fi
+  if rg --files "$REPO_PATH" 2>/dev/null | rg '/(Domain|Data|UseCase|UseCases|Repository|Repositories|Entity|Entities|DTO|Mapper|Presentation)/' >/dev/null 2>&1; then HAS_CLEAN="true"; fi
   if rg -n "ViewModel" "$REPO_PATH" --glob '!**/.git/**' --glob '*.swift' >/dev/null 2>&1; then HAS_MVVM="true"; fi
+  if rg -n "import SwiftUI" "$REPO_PATH" --glob '!**/.git/**' --glob '*.swift' >/dev/null 2>&1; then HAS_SWIFTUI="true"; fi
   if rg -n "URLSession|Alamofire|Moya" "$REPO_PATH" --glob '!**/.git/**' --glob '*.swift' >/dev/null 2>&1; then HAS_NETWORKING="true"; fi
   if rg -n "FirebaseMessaging|UNUserNotificationCenter|NotificationCenter" "$REPO_PATH" --glob '!**/.git/**' --glob '*.swift' >/dev/null 2>&1; then HAS_PUSH_NOTIF="true"; fi
   if rg -n "CoreData|Realm|UserDefaults|Keychain" "$REPO_PATH" --glob '!**/.git/**' --glob '*.swift' >/dev/null 2>&1; then HAS_STORAGE="true"; fi
@@ -163,15 +210,22 @@ if [[ "$AUTO_DETECT_CONTEXT" == "true" ]]; then
   if find "$REPO_PATH" -maxdepth 4 -type d \( -name '*UITests*' -o -name '*UI Tests*' \) | rg -n '.' >/dev/null 2>&1; then HAS_UI_TESTS="true"; fi
 
   TECH_CONTEXT_LINES+=("Project bootstrap autodetected from repository structure.")
-  if [[ "$HAS_COORDINATOR" == "true" && "$HAS_MVVM" == "true" ]]; then
-    TECH_CONTEXT_LINES+=("Architecture appears to use Coordinator + MVVM.")
-  elif [[ "$HAS_COORDINATOR" == "true" ]]; then
-    TECH_CONTEXT_LINES+=("Architecture appears to use Coordinator-style flow composition.")
-  elif [[ "$HAS_MVVM" == "true" ]]; then
-    TECH_CONTEXT_LINES+=("Presentation layer appears to use ViewModel patterns.")
+  if [[ -n "$ARCHITECTURE_OVERRIDE" ]]; then
+    TECH_CONTEXT_LINES+=("Architecture override provided by setup: ${ARCHITECTURE_OVERRIDE}.")
   else
-    TECH_CONTEXT_LINES+=("Architecture patterns were not clearly detected; review manually.")
+    if [[ "$HAS_CLEAN" == "true" && "$HAS_COORDINATOR" == "true" ]]; then
+      TECH_CONTEXT_LINES+=("Architecture appears to use Clean + Coordinator.")
+    elif [[ "$HAS_CLEAN" == "true" && "$HAS_MVVM" == "true" ]]; then
+      TECH_CONTEXT_LINES+=("Architecture appears to use Clean boundaries with ViewModel-driven presentation.")
+    elif [[ "$HAS_COORDINATOR" == "true" ]]; then
+      TECH_CONTEXT_LINES+=("Architecture appears to use Coordinator-style flow composition.")
+    elif [[ "$HAS_MVVM" == "true" ]]; then
+      TECH_CONTEXT_LINES+=("Presentation layer appears to use ViewModel patterns.")
+    else
+      TECH_CONTEXT_LINES+=("Architecture patterns were not clearly detected; review manually.")
+    fi
   fi
+  if [[ "$HAS_SWIFTUI" == "true" ]]; then TECH_CONTEXT_LINES+=("UI layer appears to be built with SwiftUI."); fi
   if [[ "$HAS_NETWORKING" == "true" ]]; then TECH_CONTEXT_LINES+=("Networking abstractions are present in source."); fi
   if [[ "$HAS_PUSH_NOTIF" == "true" ]]; then TECH_CONTEXT_LINES+=("Notification or messaging flows are present in source."); fi
   if [[ "$HAS_STORAGE" == "true" ]]; then TECH_CONTEXT_LINES+=("Persistence/session mechanisms are present (UserDefaults/Keychain/CoreData/Realm)."); fi
@@ -182,33 +236,35 @@ if [[ "$AUTO_DETECT_CONTEXT" == "true" ]]; then
   fi
 
   PATH_CANDIDATES=()
-  for f in README.md docs/architecture.md docs/Architecture.md docs/adr.md Package.swift Podfile Podfile.lock; do
+  for f in README.md docs/architecture.md docs/Architecture.md docs/adr.md docs/ADR.md Package.swift Podfile Podfile.lock; do
     [[ -f "$REPO_PATH/$f" ]] && PATH_CANDIDATES+=("$f")
   done
 
-  XCODEPROJ_REL="$(find "$REPO_PATH" -maxdepth 3 -name '*.xcodeproj' -type d | head -n 1 | sed "s|$REPO_PATH/||" || true)"
-  [[ -n "$XCODEPROJ_REL" ]] && PATH_CANDIDATES+=("$XCODEPROJ_REL")
-
+  APP_FILE="$(find_first_file_by_pattern "$REPO_PATH" '(StopApuestas.*App\.swift|.*App\.swift|AppDelegate\.swift|SceneDelegate\.swift)$')"
+  APP_COORD_FILE="$(find_first_file_by_pattern "$REPO_PATH" '(AppCoordinator\.swift|RootCoordinator\.swift)$')"
   COORD_FILE="$(find_first_file_by_pattern "$REPO_PATH" 'Coordinator\.swift$')"
-  NOTIF_FILE="$(find_first_file_by_pattern "$REPO_PATH" 'Notification.*\.swift$')"
-  APP_FILE="$(find_first_file_by_pattern "$REPO_PATH" '(AppDelegate|SceneDelegate|.*App\.swift)$')"
-  VM_FILE="$(find_first_file_by_pattern "$REPO_PATH" 'ViewModel\.swift$')"
+  NAV_FILE="$(find_first_file_by_pattern "$REPO_PATH" '(/Core/Navigation/.*\.swift$|/Navigation/.*\.swift$|DeepLinkRegistry\.swift$|AppRouter\.swift$)')"
+  DI_FILE="$(find_first_file_by_pattern "$REPO_PATH" '(CompositionRoot\.swift|DIContainer\.swift|DependencyContainer\.swift|Assembler\.swift|AppDependencies\.swift)$')"
+  FEATURE_USECASE_FILE="$(find_preferred_feature_file "$REPO_PATH" '(Domain|UseCases?)/.*\.swift$')"
+  FEATURE_REPO_FILE="$(find_preferred_feature_file "$REPO_PATH" '(Data|Domain)/.*Repository.*\.swift$')"
+  NETWORK_PROTOCOL_FILE="$(find_first_file_by_pattern "$REPO_PATH" '/Networking/.*(APIRequestable|Endpoint|Client|Router).*\.swift$')"
 
-  for pf in "$COORD_FILE" "$NOTIF_FILE" "$APP_FILE" "$VM_FILE"; do
+  for pf in "$APP_FILE" "$APP_COORD_FILE" "$COORD_FILE" "$NAV_FILE" "$DI_FILE" "$FEATURE_USECASE_FILE" "$FEATURE_REPO_FILE" "$NETWORK_PROTOCOL_FILE"; do
     if [[ -n "$pf" ]]; then
       rel="${pf#$REPO_PATH/}"
       PATH_CANDIDATES+=("$rel")
     fi
   done
 
-  declare -A seen_paths
   for p in "${PATH_CANDIDATES[@]}"; do
     [[ -z "$p" ]] && continue
-    if [[ -z "${seen_paths[$p]+x}" ]]; then
-      CONTEXT_PATHS+=("$p")
-      seen_paths[$p]=1
-    fi
+    append_unique_path "$p"
   done
+
+  # Keep context focused and high-signal.
+  if [[ ${#CONTEXT_PATHS[@]} -gt 12 ]]; then
+    CONTEXT_PATHS=("${CONTEXT_PATHS[@]:0:12}")
+  fi
 else
   TECH_CONTEXT_LINES+=("Auto-detection disabled by user.")
 fi
@@ -241,6 +297,9 @@ fi
     echo "  artifacts_path: \"$ARTIFACTS_PATH\""
   fi
   echo "context:"
+  if [[ -n "$ARCHITECTURE_OVERRIDE" ]]; then
+    echo "  architecture_override: \"$ARCHITECTURE_OVERRIDE\""
+  fi
   echo "  tech_context: |"
   for line in "${TECH_CONTEXT_LINES[@]}"; do
     echo "    $line"
@@ -263,11 +322,15 @@ if [[ "$AUTO_DETECT_CONTEXT" == "true" ]]; then
     echo "Repository: $REPO_PATH"
     echo
     echo "## Architecture summary"
+    if [[ -n "$ARCHITECTURE_OVERRIDE" ]]; then
+      echo "- Architecture detection fallback disabled: using explicit override from setup."
+    fi
     for line in "${TECH_CONTEXT_LINES[@]}"; do
       echo "- $line"
     done
     echo
     echo "## Suggested PROJECT_CONTEXT_PATHS"
+    echo "- Selection rule: representative architecture files are prioritized from core features (Auth/Profile/Home/Account) when available."
     if [[ ${#CONTEXT_PATHS[@]} -eq 0 ]]; then
       echo "- README.md"
     else

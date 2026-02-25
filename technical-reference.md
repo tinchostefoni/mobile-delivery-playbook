@@ -30,6 +30,7 @@ Core fields:
 - `JIRA_PROJECT_KEY`
 - `JIRA_BASE_URL`
 - `FIGMA_BASE_URL`
+- `ARCHITECTURE_OVERRIDE` (optional, explicit architecture source of truth)
 - `TARGET_BASE_BRANCH`
 - `NOTIFY_GOOGLE_CHAT`
 - `AUTO_DETECT_CONTEXT`
@@ -53,6 +54,7 @@ Effective values are resolved in this order:
 Context loading:
 - Task-level context: `TECH_CONTEXT` from runtime payload.
 - Project-level context: setup config + auto-context files under `.codex/`.
+- If `context.architecture_override` is set, architecture wording uses that value and does not rely on detector inference.
 
 ## 4) Branch safety behavior
 
