@@ -1,0 +1,21 @@
+version: 1
+project:
+  name: "<PROJECT_NAME>"
+  repo_path: "/absolute/path/to/repo"
+  jira_project_key: "<JIRA_PROJECT_KEY>"
+integrations:
+  jira_base_url: "https://your-domain.atlassian.net"
+  figma_base_url: "https://www.figma.com/design/<fileKey>/<name>"
+pipeline:
+  target_base_branch: "development"
+  notify_google_chat: true
+  auto_detect_context: true
+  write_artifacts: false
+  # artifacts_path is only required when write_artifacts=true
+  # artifacts_path: "<PROJECT_ROOT>/.codex/pipeline-runner"
+context:
+  tech_context: |
+    <Architecture notes, constraints, backend contracts>
+  project_context_paths:
+    - "README.md"
+    - "docs/architecture.md"

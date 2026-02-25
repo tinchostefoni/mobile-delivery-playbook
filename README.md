@@ -1,99 +1,64 @@
 # Mobile Delivery Playbook
 
-Operational playbook for mobile development teams using Jira + Figma + GitLab.
+Operational playbook for mobile teams using Jira + Figma + GitLab with Codex skills.
 
-It includes:
-- Global engineering standards for commits, branches, merge requests, changelog, and quality gates.
-- A canonical workflow for agent-assisted delivery.
-- Structured contracts (`JSON schemas`) to connect each pipeline step.
-- Reusable templates for commit messages and merge requests.
-- Google Chat notification integration.
-- Recommended GitLab CI checks.
-- Bundled Codex skills for portable setup.
+## What you get
+- Delivery standards for branch/commit/MR/changelog/quality gates.
+- A canonical workflow (`playbook-setup` + `pipeline-runner`).
+- Structured contracts (`JSON schemas`) for each pipeline stage.
+- Reusable templates and scripts.
+- Optional Google Chat notifications.
 
-## Repository structure
-- `mobile-gitlab-standard.md`: global standards (authoritative).
-- `workflow.md`: canonical end-to-end workflow.
-- `contracts/`: JSON schemas for `ticket_spec`, `design_spec`, `implementation_brief`, `implementation_result`, `qa_result`.
-- `templates/`: commit and MR templates.
-- `scripts/notify_google_chat.sh`: outbound notification script.
-- `ci/recommended/`: recommended CI pipeline and validation scripts.
-- `skills/`: bundled custom skills used by this playbook.
-- `scripts/install_skills.sh`: local installer for bundled skills.
-
-## Install bundled skills
-Run from this repository root:
+## Quick start
+1. Install bundled skills:
 
 ```bash
 bash scripts/install_skills.sh
 ```
 
-Then restart Codex Desktop so skills are reloaded.
-
-## Canonical run input
-Use this payload when starting a run in Codex:
+2. Run one-time project setup from chat:
 
 ```md
-Use pipeline-runner with this payload:
-JIRA_KEY: <ISSUE-ID>
-JIRA_URL: https://your-domain.atlassian.net/browse/<ISSUE-ID>
-FIGMA_URL: https://www.figma.com/design/<fileKey>/<name>?node-id=<id>
-FIGMA_NODE_IDS: 12:34,56:78
+playbook-setup
+SETUP_MODE: INIT
 REPO_PATH: /absolute/path/to/repo
-TARGET_BASE_BRANCH: dev|develop|development
+PROJECT_NAME: <name>
+JIRA_PROJECT_KEY: <e.g. LSF>
+JIRA_BASE_URL: https://your-domain.atlassian.net
+FIGMA_BASE_URL: https://www.figma.com/design/<fileKey>/<name>
+TARGET_BASE_BRANCH: development
 NOTIFY_GOOGLE_CHAT: true
-RUN_MODE: REAL_RUN | DRY_RUN
+AUTO_DETECT_CONTEXT: true
+WRITE_ARTIFACTS: false
 ```
 
-`@pipeline-runner` can still work in some contexts, but plain text invocation is the recommended/default format.
+3. Execute a run from chat:
 
-### RUN_MODE explained
-- `REAL_RUN`: executes the real workflow against the repository path you provide.
-- `DRY_RUN`: simulates the flow and produces artifacts/contracts without performing real repository changes.
-- If omitted, use `REAL_RUN` by default unless you explicitly request a simulation.
+```md
+pipeline-runner
+JIRA_KEY: <ISSUE-ID>
+FIGMA_NODE_IDS: 12:34,56:78
+RUN_MODE: REAL_RUN|DRY_RUN|PLAN_ONLY
 
-## Commit and MR policy highlights
-- No automatic commit/push/merge by default.
-- Commit/MR can be executed only by explicit chat command:
-  - `EFFECTIVIZE_COMMIT`
-  - `CREATE_MR`
-  - `EFFECTIVIZE_COMMIT_AND_CREATE_MR`
-- MR merge is always manual.
-- Squash is mandatory.
-- Minimum approvals: 1.
-
-## Changelog policy
-- Follow Keep a Changelog 1.1.0.
-- Update `CHANGELOG.md` under `## [Unreleased]` for every code change.
-- Entries must reflect real code diff and verified behavior, not Jira wording.
-- Use past tense.
-- Allowed sections: `Added`, `Changed`, `Fixed`, `Removed`, `Security`.
-
-## Recommended CI setup
-This repo provides a recommended GitLab CI configuration in:
-- `ci/recommended/.gitlab-ci.recommended.yml`
-- `ci/recommended/scripts/`
-
-To adopt it in a project:
-1. Copy the files into the target project.
-2. Merge jobs into existing `.gitlab-ci.yml`.
-3. Ensure merge settings in GitLab enforce green pipelines and approvals.
-
-## Google Chat notifications
-Configure webhook URL in environment:
-
-```bash
-export GOOGLE_CHAT_WEBHOOK_URL="<webhook-url>"
+TECH_CONTEXT: |
+  Task-level technical notes and constraints.
 ```
 
-Example:
+## Main docs
+- Workflow: [workflow.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/workflow.md)
+- Standards: [mobile-gitlab-standard.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/mobile-gitlab-standard.md)
+- Skills index: [skills/README.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/skills/README.md)
+- Contracts: [contracts/README.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/contracts/README.md)
+- Technical guide: [technical-reference.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/technical-reference.md)
+- Scripts guide: [scripts/README.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/scripts/README.md)
 
-```bash
-scripts/notify_google_chat.sh \
-  "PROJECT-123" "READY_FOR_REVIEW" \
-  "Local gates passed, waiting your command" \
-  "https://your-domain.atlassian.net/browse/PROJECT-123"
-```
+## MCPs
+- Required: Atlassian MCP, Figma MCP
+- Recommended: GitLab MCP
+- Notifications: Google Chat incoming webhook via `GOOGLE_CHAT_WEBHOOK_URL`
+
+Detailed setup and validation are in the technical guide.
 
 ## Notes
-- Project-specific decisions (iOS matrix, simulator matrix, exact CI integration details) should be defined per repository.
+- Generated runtime files should stay in project `.codex/` and should be ignored in project `.gitignore`.
+- Commit/push/merge are not automatic by default and require explicit chat commands.

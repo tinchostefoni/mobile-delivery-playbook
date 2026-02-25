@@ -2,6 +2,7 @@
 
 This folder contains the pipeline skills required by this playbook:
 
+- `playbook-setup`
 - `jira-intake`
 - `figma-intake`
 - `spec-filler`
@@ -20,3 +21,7 @@ bash scripts/install_skills.sh
 The script copies these skills into `~/.codex/skills/`.
 
 After install, restart Codex Desktop so skills are reloaded.
+
+## References
+- Workflow: [workflow.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/workflow.md)
+- Technical guide: [technical-reference.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/technical-reference.md)
