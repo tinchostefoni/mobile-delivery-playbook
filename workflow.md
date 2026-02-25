@@ -95,6 +95,12 @@ Notes:
   - `DRY_RUN`: simulation mode, no repository mutation.
   - `REAL_RUN`: full execution mode.
 
+Recommended usage sequence:
+1. `PLAN_ONLY`
+2. Correct missing data/steps detected in plan output
+3. `DRY_RUN`
+4. If validation is correct, execute `REAL_RUN`
+
 ## 4) Execution sequence
 1. `jira-intake` -> `ticket_spec` (in-memory or artifact file based on `WRITE_ARTIFACTS`)
 2. `figma-intake` (if UI task) -> `design_spec`

@@ -44,6 +44,12 @@ Core fields:
 - `RUN_MODE: REAL_RUN|DRY_RUN|PLAN_ONLY` (default: `REAL_RUN`)
 - `TECH_CONTEXT` (optional, task-specific)
 
+Recommended run sequence:
+1. `PLAN_ONLY`
+2. Correct missing data/steps from summary/plan output
+3. `DRY_RUN`
+4. Run `REAL_RUN` once checks and scope look correct
+
 ## 3) Context precedence
 
 Effective values are resolved in this order:

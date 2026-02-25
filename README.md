@@ -45,6 +45,12 @@ TECH_CONTEXT: |
   Task-level technical notes and constraints.
 ```
 
+## Recommended run flow
+1. `PLAN_ONLY`
+2. Correct missing data and refine summary/context
+3. `DRY_RUN`
+4. If outputs look correct, execute `REAL_RUN`
+
 ## Main docs
 - Workflow: [workflow.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/workflow.md)
 - Standards: [mobile-gitlab-standard.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/mobile-gitlab-standard.md)
