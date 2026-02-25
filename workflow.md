@@ -100,6 +100,7 @@ Recommended usage sequence:
 2. Correct missing data/steps detected in plan output
 3. `DRY_RUN`
 4. If validation is correct, execute `REAL_RUN`
+5. Every run response must end with a recommended next step.
 
 ## 4) Execution sequence
 1. `jira-intake` -> `ticket_spec` (in-memory or artifact file based on `WRITE_ARTIFACTS`)

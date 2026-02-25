@@ -63,6 +63,21 @@ fi
 mkdir -p "$(dirname "$OUTPUT")"
 ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
+if [[ -z "$NEXT_ACTION" ]]; then
+  if [[ "$RUN_MODE" == "PLAN_ONLY" ]]; then
+    NEXT_ACTION="Refine summary/context and run DRY_RUN."
+  elif [[ "$RUN_MODE" == "DRY_RUN" ]]; then
+    NEXT_ACTION="If output looks correct, run REAL_RUN."
+  else
+    case "$STATUS" in
+      success) NEXT_ACTION="If ready, send EFFECTIVIZE_COMMIT, CREATE_MR, or EFFECTIVIZE_COMMIT_AND_CREATE_MR." ;;
+      warning) NEXT_ACTION="Address warnings, then rerun REAL_RUN or proceed with explicit user approval." ;;
+      blocked|error) NEXT_ACTION="Resolve blockers and rerun from PLAN_ONLY or DRY_RUN before REAL_RUN." ;;
+      *) NEXT_ACTION="Review output and decide next command." ;;
+    esac
+  fi
+fi
+
 {
   echo "# Run Summary"
   echo
@@ -88,8 +103,8 @@ ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     echo "- Risks:"
     echo "- Unknowns:"
     echo
-    echo "## Next Action"
-    echo "${NEXT_ACTION:-Review plan and choose REAL_RUN or DRY_RUN.}"
+    echo "## Recommended Next Step"
+    echo "$NEXT_ACTION"
   else
     echo "## Scope"
     echo "- Planned:"
@@ -108,8 +123,8 @@ ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     echo "- Risks:"
     echo "- Blockers:"
     echo
-    echo "## Next Action"
-    echo "${NEXT_ACTION:-Awaiting user command.}"
+    echo "## Recommended Next Step"
+    echo "$NEXT_ACTION"
   fi
 } > "$OUTPUT"
 

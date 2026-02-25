@@ -123,3 +123,4 @@ TECH_CONTEXT: |
   - `PLAN_ONLY`: at planning completion (before `PLAN_ONLY_DONE`).
   - `REAL_RUN`/`DRY_RUN`: at pipeline close.
 - `run_summary.md` must adapt sections to `RUN_MODE` (`PLAN_ONLY` vs `REAL_RUN/DRY_RUN`).
+- In every run response (`PLAN_ONLY`, `DRY_RUN`, `REAL_RUN`), include a clear `Recommended next step`.
