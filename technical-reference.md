@@ -50,6 +50,13 @@ Recommended run sequence:
 3. `DRY_RUN`
 4. Run `REAL_RUN` once checks and scope look correct
 
+For `DRY_RUN` and `REAL_RUN`, response quality bar:
+1. List planned changes precisely (files/modules/behavior)
+2. List non-changes explicitly
+3. Provide diff vs prior plan output
+4. Explain architecture alignment (or deviation)
+5. Justify every unplanned change technically
+
 ## 3) Context precedence
 
 Effective values are resolved in this order:

@@ -101,6 +101,12 @@ Recommended usage sequence:
 3. `DRY_RUN`
 4. If validation is correct, execute `REAL_RUN`
 5. Every run response must end with a recommended next step.
+6. In `DRY_RUN`/`REAL_RUN`, response must include:
+   - planned changes
+   - non-changes
+   - plan diff
+   - architecture impact
+   - rationale for any unplanned change
 
 ## 4) Execution sequence
 1. `jira-intake` -> `ticket_spec` (in-memory or artifact file based on `WRITE_ARTIFACTS`)
@@ -124,6 +130,10 @@ Recommended usage sequence:
 16. `run_summary.md` is mode-aware:
    - `PLAN_ONLY`: plan, forecast files, risks/unknowns, next action.
    - `REAL_RUN/DRY_RUN`: scope, changed files, validation, blockers, next action.
+17. For `REAL_RUN/DRY_RUN`, run summary must explicitly document:
+   - planned vs executed diff
+   - architecture intent alignment
+   - every unplanned change with technical rationale
 
 ## 5) CI clarification
 - CI tests are not executed in this local pipeline step.

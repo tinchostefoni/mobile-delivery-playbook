@@ -124,3 +124,9 @@ TECH_CONTEXT: |
   - `REAL_RUN`/`DRY_RUN`: at pipeline close.
 - `run_summary.md` must adapt sections to `RUN_MODE` (`PLAN_ONLY` vs `REAL_RUN/DRY_RUN`).
 - In every run response (`PLAN_ONLY`, `DRY_RUN`, `REAL_RUN`), include a clear `Recommended next step`.
+- For `DRY_RUN` and `REAL_RUN`, include a technical change contract in the response:
+  - `Planned changes` (exact files/modules and expected behavior changes)
+  - `Non-changes` (what will NOT be touched)
+  - `Plan diff` (what differs vs PLAN_ONLY/DRY_RUN plan)
+  - `Architecture impact` (how changes align with intended architecture; flag deviations explicitly)
+  - `Unplanned changes rationale` (mandatory when touching anything not declared in plan)

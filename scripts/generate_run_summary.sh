@@ -106,6 +106,25 @@ fi
     echo "## Recommended Next Step"
     echo "$NEXT_ACTION"
   else
+    echo "## Planned Changes (Technical)"
+    echo "- Files/modules to change:"
+    echo "- Behavior changes expected:"
+    echo
+    echo "## Non-Changes (Guardrails)"
+    echo "- Files/modules explicitly out of scope:"
+    echo "- Behaviors that must remain unchanged:"
+    echo
+    echo "## Plan Diff"
+    echo "- Delta vs previous PLAN_ONLY/DRY_RUN:"
+    echo "- Reason for delta:"
+    echo
+    echo "## Architecture Impact"
+    echo "- Intended architecture:"
+    echo "- Alignment/deviation:"
+    echo
+    echo "## Unplanned Changes Rationale"
+    echo "- List every unplanned change and technical reason:"
+    echo
     echo "## Scope"
     echo "- Planned:"
     echo "- Executed:"
