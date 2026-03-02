@@ -105,6 +105,12 @@ TECH_CONTEXT: |
   - `EFFECTIVIZE_COMMIT`
   - `CREATE_MR`
   - `EFFECTIVIZE_COMMIT_AND_CREATE_MR`
+- If MR creation fails (permissions/network/provider restrictions), return a manual-MR fallback package in the same response:
+  - prefilled MR title
+  - prefilled MR description (short template by default)
+  - source/target branch values
+  - direct create-MR URL (when available)
+  - short reason of automatic MR failure
 
 ## Error policy
 - Attempt autonomous retries and fixes first.

@@ -124,6 +124,12 @@ Recommended usage sequence:
 - `CREATE_MR`
 - `EFFECTIVIZE_COMMIT_AND_CREATE_MR`
 12. If command includes MR creation, open/update MR in GitLab
+   - If automatic MR creation fails (permissions/network), return manual fallback in response:
+     - prefilled MR title
+     - prefilled MR description (short template)
+     - source/target branches
+     - direct create-MR URL (if available)
+     - concise failure reason
 13. CI runs in GitLab MR (external gate)
 14. For non-`PLAN_ONLY` runs, generate `run_summary.md` at pipeline close (default: `<REPO_ROOT>/.codex/pipeline-runner/<JIRA_KEY>/run_summary.md`).
 15. If CI green + QA approved + changelog updated -> `FINALIZED` notification

@@ -145,3 +145,14 @@ Events:
 - `FINALIZED`
 
 `ERROR_BLOCKING` should be sent only after autonomous retry/repair attempts are exhausted.
+
+## 9) MR fallback behavior
+
+When user requests `CREATE_MR` (or combined command) and MR cannot be created automatically:
+- keep flow in `ACTION_REQUIRED` (not finalized),
+- return a manual fallback package in chat with:
+  - prefilled MR title,
+  - prefilled MR description (short template),
+  - source/target branch values,
+  - direct create-MR URL when available,
+  - concise technical reason of auto-create failure.
