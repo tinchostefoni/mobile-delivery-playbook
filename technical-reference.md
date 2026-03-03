@@ -5,11 +5,11 @@ This document contains implementation-level details for `playbook-setup` and `pi
 ## 1) Configuration model
 
 Project configuration is stored in:
-- `<REPO_ROOT>/.codex/playbook.config.yml`
+- `<REPO_ROOT>/.playbook/playbook.config.yml`
 
 Optional auto-context files:
-- `<REPO_ROOT>/.codex/project_context.auto.md`
-- `<REPO_ROOT>/.codex/project_context_paths.auto.txt`
+- `<REPO_ROOT>/.playbook/project_context.auto.md`
+- `<REPO_ROOT>/.playbook/project_context_paths.auto.txt`
 
 ### Setup modes
 - `SETUP_MODE=INIT`
@@ -61,12 +61,12 @@ For `DRY_RUN` and `REAL_RUN`, response quality bar:
 
 Effective values are resolved in this order:
 1. Runtime payload (only allowed runtime fields)
-2. `<REPO_ROOT>/.codex/playbook.config.yml`
+2. `<REPO_ROOT>/.playbook/playbook.config.yml`
 3. Runner defaults
 
 Context loading:
 - Task-level context: `TECH_CONTEXT` from runtime payload.
-- Project-level context: setup config + auto-context files under `.codex/`.
+- Project-level context: setup config + auto-context files under `.playbook/`.
 - If `context.architecture_override` is set, architecture wording uses that value and does not rely on detector inference.
 
 ## 4) Branch safety behavior
@@ -81,7 +81,7 @@ Implementation on base branch is not allowed.
 ## 5) Preflight behavior
 
 Script:
-- [scripts/preflight_pipeline_runner.sh](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/scripts/preflight_pipeline_runner.sh)
+- [scripts/preflight_pipeline_runner.sh](scripts/preflight_pipeline_runner.sh)
 
 Output modes:
 - `text` (human-readable)
@@ -107,10 +107,10 @@ Blocking policy highlights:
 ## 6) Run summary integration
 
 Generator:
-- [scripts/generate_run_summary.sh](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/scripts/generate_run_summary.sh)
+- [scripts/generate_run_summary.sh](scripts/generate_run_summary.sh)
 
 Default output:
-- `<REPO_ROOT>/.codex/pipeline-runner/<JIRA_KEY>/run_summary.md`
+- `<REPO_ROOT>/.playbook/pipeline-runner/<JIRA_KEY>/run_summary.md`
 
 When it is incorporated in the flow:
 - `PLAN_ONLY`: generated when planning finishes, before completion notification (`PLAN_ONLY_DONE`).
@@ -128,12 +128,12 @@ Artifacts are controlled by setup config, not per run payload.
 - `WRITE_ARTIFACTS=false`:
   - Keep contracts/results in memory unless explicitly needed.
 - `WRITE_ARTIFACTS=true`:
-  - Persist to `ARTIFACTS_PATH` (recommended `<REPO_ROOT>/.codex/pipeline-runner`).
+  - Persist to `ARTIFACTS_PATH` (recommended `<REPO_ROOT>/.playbook/pipeline-runner`).
 
 ## 8) Notifications
 
 Google Chat notifier script:
-- [scripts/notify_google_chat.sh](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/scripts/notify_google_chat.sh)
+- [scripts/notify_google_chat.sh](scripts/notify_google_chat.sh)
 
 Events:
 - `ACTION_REQUIRED`

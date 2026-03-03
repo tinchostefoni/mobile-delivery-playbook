@@ -1,7 +1,7 @@
 # Skills to Contracts Map
 
 ## Agent order
-1. `playbook-setup` -> writes `.codex/playbook.config.yml` (project defaults/context)
+1. `playbook-setup` -> writes `.playbook/playbook.config.yml` (project defaults/context)
 2. `jira-intake` -> outputs `ticket_spec`
 3. `figma-intake` -> outputs `design_spec`
 4. `spec-filler` -> outputs `implementation_brief`
@@ -14,5 +14,5 @@
 - Stop when blocker affects acceptance criteria, security, or deployment safety.
 
 ## References
-- Workflow: [workflow.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/workflow.md)
-- Technical guide: [technical-reference.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/technical-reference.md)
+- Workflow: [workflow.md](workflow.md)
+- Technical guide: [technical-reference.md](technical-reference.md)

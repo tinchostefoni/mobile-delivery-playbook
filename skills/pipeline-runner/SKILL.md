@@ -25,15 +25,15 @@ TECH_CONTEXT: |
 
 ## Defaults
 - `RUN_MODE`: `REAL_RUN`
-- `RUN_SUMMARY_PATH`: `<REPO_ROOT>/.codex/pipeline-runner/<JIRA_KEY>/run_summary.md`
+- `RUN_SUMMARY_PATH`: `<REPO_ROOT>/.playbook/pipeline-runner/<JIRA_KEY>/run_summary.md`
 
 ## Config resolution
 1. Resolve `REPO_ROOT` from current working directory (`git rev-parse --show-toplevel`).
-2. Auto-load `<REPO_ROOT>/.codex/playbook.config.yml`.
+2. Auto-load `<REPO_ROOT>/.playbook/playbook.config.yml`.
 3. If config is missing, fail with explicit message: run `playbook-setup` first.
 4. If available, read additional auto-context files:
-   - `<REPO_ROOT>/.codex/project_context.auto.md`
-   - `<REPO_ROOT>/.codex/project_context_paths.auto.txt`
+   - `<REPO_ROOT>/.playbook/project_context.auto.md`
+   - `<REPO_ROOT>/.playbook/project_context_paths.auto.txt`
 5. Apply values with precedence:
    - explicit payload fields
    - setup config fields

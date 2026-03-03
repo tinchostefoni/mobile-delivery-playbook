@@ -1,6 +1,6 @@
 ---
 name: playbook-setup
-description: Initialize or update per-project pipeline defaults by creating .codex/playbook.config.yml (base branch, Jira prefix, tech context, and project context paths) for pipeline-runner.
+description: Initialize or update per-project pipeline defaults by creating .playbook/playbook.config.yml (base branch, Jira prefix, tech context, and project context paths) for pipeline-runner.
 ---
 
 # Playbook Setup
@@ -40,18 +40,18 @@ PROJECT_CONTEXT_PATHS: docs/architecture.md,README.md,Sources/App/CompositionRoo
 # optional behavior defaults for pipeline-runner
 WRITE_ARTIFACTS: false
 # only when WRITE_ARTIFACTS=true
-ARTIFACTS_PATH: <REPO_PATH>/.codex/pipeline-runner
+ARTIFACTS_PATH: <REPO_PATH>/.playbook/pipeline-runner
 ```
 
 Mode behavior:
 - `INIT`: full bootstrap (autodetect + config generation).
 - `UPDATE`: update only configured global values (URLs, branch, notify, artifact flags, project key/name) without re-running bootstrap context generation.
-- `UPDATE`: `REPO_PATH` is optional; if omitted, use the `repo_path` saved by `INIT` in `.codex/playbook.config.yml`.
+- `UPDATE`: `REPO_PATH` is optional; if omitted, use the `repo_path` saved by `INIT` in `.playbook/playbook.config.yml`.
 
 ## Output file (created/updated)
-- `<REPO_PATH>/.codex/playbook.config.yml`
-- `<REPO_PATH>/.codex/project_context.auto.md` (only when `AUTO_DETECT_CONTEXT=true`)
-- `<REPO_PATH>/.codex/project_context_paths.auto.txt` (only when `AUTO_DETECT_CONTEXT=true`)
+- `<REPO_PATH>/.playbook/playbook.config.yml`
+- `<REPO_PATH>/.playbook/project_context.auto.md` (only when `AUTO_DETECT_CONTEXT=true`)
+- `<REPO_PATH>/.playbook/project_context_paths.auto.txt` (only when `AUTO_DETECT_CONTEXT=true`)
 
 ## Rules
 1. Validate `REPO_PATH` exists and is a git repository (`UPDATE` may omit it and use `project.repo_path` saved by `INIT`).
@@ -61,11 +61,11 @@ Mode behavior:
 5. If `SETUP_MODE=UPDATE`, run `../.mobile-delivery-playbook-runtime/scripts/update_playbook_setup.sh` and preserve existing `context.*` values.
 6. `AUTO_DETECT_CONTEXT` defaults to `true`.
 7. If `AUTO_DETECT_CONTEXT=true`, auto-detect project context and write:
-   - `.codex/project_context.auto.md`
-   - `.codex/project_context_paths.auto.txt`
+   - `.playbook/project_context.auto.md`
+   - `.playbook/project_context_paths.auto.txt`
 8. If `ARCHITECTURE_OVERRIDE` is provided, use it as architecture source of truth and treat detector output as fallback.
 9. If `AUTO_DETECT_CONTEXT=false`, do not overwrite auto-detected context files.
-10. Write/update `.codex/playbook.config.yml` with:
+10. Write/update `.playbook/playbook.config.yml` with:
    - `project.name`
    - `project.repo_path`
    - `project.jira_project_key`
@@ -100,7 +100,7 @@ pipeline:
   notify_google_chat: true
   auto_detect_context: true
   write_artifacts: false
-  artifacts_path: "/absolute/path/to/repo/.codex/pipeline-runner"
+  artifacts_path: "/absolute/path/to/repo/.playbook/pipeline-runner"
 context:
   architecture_override: "Clean + Coordinator"
   tech_context: |

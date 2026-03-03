@@ -20,17 +20,17 @@ TECH_CONTEXT: |
 PROJECT_CONTEXT_PATHS: docs/architecture.md,README.md,Sources/App/CompositionRoot.swift
 WRITE_ARTIFACTS: false
 # only when WRITE_ARTIFACTS=true
-ARTIFACTS_PATH: <REPO_PATH>/.codex/pipeline-runner
+ARTIFACTS_PATH: <REPO_PATH>/.playbook/pipeline-runner
 ```
 
 Notes:
 - This setup is executed from chat through `playbook-setup`.
 - `SETUP_MODE=INIT` bootstraps config + autodetected context.
 - `SETUP_MODE=UPDATE` updates existing global setup values without rebootstrap.
-- In `SETUP_MODE=UPDATE`, `REPO_PATH` is optional: it uses `repo_path` saved by `INIT` in `.codex/playbook.config.yml`.
+- In `SETUP_MODE=UPDATE`, `REPO_PATH` is optional: it uses `repo_path` saved by `INIT` in `.playbook/playbook.config.yml`.
 - If `ARCHITECTURE_OVERRIDE` is provided, that value is used as architecture source of truth and autodetection becomes fallback.
 - No user terminal command is required.
-- The skill auto-generates `.codex/project_context.auto.md` and `.codex/project_context_paths.auto.txt`.
+- The skill auto-generates `.playbook/project_context.auto.md` and `.playbook/project_context_paths.auto.txt`.
 - `playbook-setup` must run preflight in `setup` mode right after writing config.
 
 ## 2) Preflight setup (required)
@@ -40,15 +40,15 @@ Notes:
 2. Resolve canonical playbook path and contracts before executing any step.
 3. Resolve effective configuration with this precedence:
    - explicit payload fields
-   - values from auto-loaded `<REPO_ROOT>/.codex/playbook.config.yml`
+   - values from auto-loaded `<REPO_ROOT>/.playbook/playbook.config.yml`
    - runner defaults
 4. If setup config defines `project.jira_project_key`, validate ticket prefix (`<KEY>-<number>`).
 5. Load project context from:
    - setup config `PROJECT_CONTEXT_PATHS`, then
-   - `<REPO_ROOT>/.codex/project_context_paths.auto.txt` when present.
+   - `<REPO_ROOT>/.playbook/project_context_paths.auto.txt` when present.
 6. Load technical context from:
    - runtime payload `TECH_CONTEXT` (task-specific), then
-   - `<REPO_ROOT>/.codex/project_context.auto.md` when present.
+   - `<REPO_ROOT>/.playbook/project_context.auto.md` when present.
    - if `AUTO_DETECT_CONTEXT=false`, skip auto context files and rely on provided context only.
 7. If `RUN_MODE=REAL_RUN`, enforce branch setup before editing:
    - checkout `TARGET_BASE_BRANCH`
@@ -86,7 +86,7 @@ Notes:
 - `JIRA_KEY` is mandatory.
 - `FIGMA_NODE_IDS` is mandatory only for UI work.
 - `JIRA_URL` and `FIGMA_URL` are derived from `playbook-setup` config.
-- Runner auto-loads `<REPO_ROOT>/.codex/playbook.config.yml`; if missing, it must fail and request running `playbook-setup`.
+- Runner auto-loads `<REPO_ROOT>/.playbook/playbook.config.yml`; if missing, it must fail and request running `playbook-setup`.
 - `RUN_MODE` defaults to `REAL_RUN` if omitted.
 - `TECH_CONTEXT` here is task-specific (not project-wide setup).
 - `AUTO_DETECT_CONTEXT`, `PROJECT_CONTEXT_PATHS`, `WRITE_ARTIFACTS` and `ARTIFACTS_PATH` are managed by `playbook-setup` in project config.
@@ -131,7 +131,7 @@ Recommended usage sequence:
      - direct create-MR URL (if available)
      - concise failure reason
 13. CI runs in GitLab MR (external gate)
-14. For non-`PLAN_ONLY` runs, generate `run_summary.md` at pipeline close (default: `<REPO_ROOT>/.codex/pipeline-runner/<JIRA_KEY>/run_summary.md`).
+14. For non-`PLAN_ONLY` runs, generate `run_summary.md` at pipeline close (default: `<REPO_ROOT>/.playbook/pipeline-runner/<JIRA_KEY>/run_summary.md`).
 15. If CI green + QA approved + changelog updated -> `FINALIZED` notification
 16. `run_summary.md` is mode-aware:
    - `PLAN_ONLY`: plan, forecast files, risks/unknowns, next action.
@@ -176,7 +176,7 @@ Send notification on every event below:
 
 ## 8) Artifact policy
 - Default: do not write pipeline artifacts into the target project repository.
-- If `WRITE_ARTIFACTS=true`, write artifacts to `ARTIFACTS_PATH` (recommended: `<REPO_ROOT>/.codex/pipeline-runner`).
+- If `WRITE_ARTIFACTS=true`, write artifacts to `ARTIFACTS_PATH` (recommended: `<REPO_ROOT>/.playbook/pipeline-runner`).
 - Artifact files:
   - `ticket_spec.json`
   - `design_spec.json`

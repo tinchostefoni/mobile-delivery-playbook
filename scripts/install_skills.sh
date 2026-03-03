@@ -3,7 +3,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="$REPO_ROOT/skills"
-DEST="${HOME}/.codex/skills"
+DEST="${HOME}/.playbook/skills"
 RUNTIME_NAME=".mobile-delivery-playbook-runtime"
 RUNTIME_DEST="$DEST/$RUNTIME_NAME"
 
@@ -37,4 +37,4 @@ cp "$REPO_ROOT/technical-reference.md" "$RUNTIME_DEST/technical-reference.md"
 
 echo "Installed shared playbook runtime: $RUNTIME_DEST"
 
-echo "Done. Restart Codex Desktop to reload skills."
+echo "Done. Restart Claude Code to reload skills."

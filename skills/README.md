@@ -18,10 +18,10 @@ Run from this repository root:
 bash scripts/install_skills.sh
 ```
 
-The script copies these skills into `~/.codex/skills/`.
+The script copies these skills into `~/.playbook/skills/`.
 
-After install, restart Codex Desktop so skills are reloaded.
+After install, restart Claude Code so skills are reloaded.
 
 ## References
-- Workflow: [workflow.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/workflow.md)
-- Technical guide: [technical-reference.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/technical-reference.md)
+- Workflow: [workflow.md](workflow.md)
+- Technical guide: [technical-reference.md](technical-reference.md)

@@ -1,6 +1,6 @@
 # Mobile Delivery Playbook
 
-Operational playbook for mobile teams using Jira + Figma + GitLab with Codex skills.
+Operational playbook for mobile teams using Jira + Figma + GitLab with Claude skills.
 
 ## What you get
 - Delivery standards for branch/commit/MR/changelog/quality gates.
@@ -52,12 +52,12 @@ TECH_CONTEXT: |
 4. If outputs look correct, execute `REAL_RUN`
 
 ## Main docs
-- Workflow: [workflow.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/workflow.md)
-- Standards: [mobile-gitlab-standard.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/mobile-gitlab-standard.md)
-- Skills index: [skills/README.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/skills/README.md)
-- Contracts: [contracts/README.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/contracts/README.md)
-- Technical guide: [technical-reference.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/technical-reference.md)
-- Scripts guide: [scripts/README.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/scripts/README.md)
+- Workflow: [workflow.md](workflow.md)
+- Standards: [mobile-gitlab-standard.md](mobile-gitlab-standard.md)
+- Skills index: [skills/README.md](skills/README.md)
+- Contracts: [contracts/README.md](contracts/README.md)
+- Technical guide: [technical-reference.md](technical-reference.md)
+- Scripts guide: [scripts/README.md](scripts/README.md)
 
 ## MCPs
 - Required: Atlassian MCP, Figma MCP
@@ -67,5 +67,5 @@ TECH_CONTEXT: |
 Detailed setup and validation are in the technical guide.
 
 ## Notes
-- Generated runtime files should stay in project `.codex/` and should be ignored in project `.gitignore`.
+- Generated runtime files should stay in project `.playbook/` and should be ignored in project `.gitignore`.
 - Commit/push/merge are not automatic by default and require explicit chat commands.
