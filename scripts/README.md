@@ -48,6 +48,17 @@ bash scripts/install_skills.sh
 - Requires:
   - `GOOGLE_CHAT_WEBHOOK_URL` env var.
 
+## `validate_contract.sh`
+- Purpose: validates a JSON artifact against its JSON Schema.
+- Used by: all pipeline skills after generating contract artifacts.
+- Requires: `python3` (uses `jsonschema` library when available, falls back to basic validation).
+- Usage:
+```bash
+bash scripts/validate_contract.sh --schema contracts/ticket_spec.schema.json --data artifact.json
+bash scripts/validate_contract.sh --schema contracts/ticket_spec.schema.json --data-stdin < artifact.json
+```
+- Output modes: `--output-format text` (default) or `--output-format json`.
+
 ## `validate_playbook.sh`
 - Purpose: validates this playbook repository consistency (skills, docs, scripts).
 - Used by:

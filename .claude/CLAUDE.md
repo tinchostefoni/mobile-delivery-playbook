@@ -64,6 +64,41 @@ Read these files to understand the full system:
 
 - **GitLab MCP** — for MR creation and CI status checks
 
+## Auto-loading behavior
+
+When starting a pipeline run, Claude must automatically:
+
+1. **Resolve `PLAYBOOK_ROOT`** — if `scripts/preflight_pipeline_runner.sh` exists at the repo root,
+   use that as playbook root (direct/Cowork mode). Otherwise look for the installed runtime at
+   `~/.claude/skills/.mobile-delivery-playbook-runtime/`.
+2. **Load `workflow.md`** — read it fully to understand the execution sequence for the current `RUN_MODE`.
+3. **Load relevant contract schemas** from `contracts/*.schema.json` — use them to validate
+   every inter-skill handoff artifact.
+4. **Load `mobile-gitlab-standard.md`** — apply commit, branch, MR, and changelog standards.
+5. **Load project config** from `<REPO_ROOT>/.playbook/playbook.config.yml` if it exists.
+6. **Load auto-context** from `.playbook/project_context.auto.md` and `.playbook/project_context_paths.auto.txt` when enabled.
+
+## Pre-run validation
+
+Before executing any pipeline step, run the preflight validator:
+```bash
+bash $PLAYBOOK_ROOT/scripts/preflight_pipeline_runner.sh \
+  --repo <REPO_ROOT> --base-branch <BRANCH> --jira-key <KEY> \
+  --run-mode <MODE> --output-format json
+```
+
+If preflight fails, stop and report the failure to the user. Do not proceed with partial execution.
+
+## Contract validation
+
+After generating each contract artifact (ticket_spec, design_spec, implementation_brief,
+implementation_result, qa_result), validate it against its schema:
+```bash
+bash $PLAYBOOK_ROOT/scripts/validate_contract.sh \
+  --schema $PLAYBOOK_ROOT/contracts/<name>.schema.json \
+  --data <artifact.json>
+```
+
 ## Project configuration
 
 When `playbook-setup` runs on a target project, it creates:

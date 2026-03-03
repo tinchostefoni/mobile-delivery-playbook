@@ -1,6 +1,11 @@
 ---
 name: pipeline-runner
-description: Orchestrate the Jira+Figma pipeline end-to-end from a single payload block using canonical workflow and contracts.
+description: >
+  Orchestrate the Jira+Figma mobile delivery pipeline end-to-end from a single payload block.
+  Triggers when the user mentions pipeline-runner, wants to run implementation for a Jira ticket,
+  or provides a payload with JIRA_KEY and RUN_MODE.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
+argument-hint: "JIRA_KEY: <KEY> FIGMA_NODE_IDS: <ids> RUN_MODE: PLAN_ONLY|DRY_RUN|REAL_RUN"
 ---
 
 # Pipeline Runner
@@ -9,7 +14,7 @@ Use this skill when the user wants to run the canonical pipeline from a single m
 
 ## Trigger phrase
 - Recommended invocation: plain text (`Use pipeline-runner with this payload:`)
-- `@pipeline-runner` is optional and may not be available in all contexts
+- Also triggers on `/pipeline-runner` when available as a slash command
 
 ## Expected input block
 
@@ -26,6 +31,32 @@ TECH_CONTEXT: |
 ## Defaults
 - `RUN_MODE`: `REAL_RUN`
 - `RUN_SUMMARY_PATH`: `<REPO_ROOT>/.playbook/pipeline-runner/<JIRA_KEY>/run_summary.md`
+
+## Playbook root resolution
+
+The playbook runtime (scripts, contracts, workflow, templates) can live in two locations depending on context:
+
+1. **Direct repo mode** (Cowork / working inside the playbook repo):
+   - `PLAYBOOK_ROOT` = git root of the playbook repo itself.
+   - Scripts at `$PLAYBOOK_ROOT/scripts/`, contracts at `$PLAYBOOK_ROOT/contracts/`, etc.
+   - Detect: `$REPO_ROOT/skills/pipeline-runner/SKILL.md` exists → you are inside the playbook repo.
+
+2. **Installed mode** (Claude Code CLI / skills installed to `~/.claude/skills/`):
+   - `PLAYBOOK_ROOT` = `../.mobile-delivery-playbook-runtime/` relative to this skill file.
+   - Scripts at `$PLAYBOOK_ROOT/scripts/`, contracts at `$PLAYBOOK_ROOT/contracts/`, etc.
+   - Detect: this skill is at `~/.claude/skills/pipeline-runner/SKILL.md`.
+
+Resolution algorithm:
+```
+if <REPO_ROOT>/scripts/preflight_pipeline_runner.sh exists:
+  PLAYBOOK_ROOT = <REPO_ROOT>
+else if <SKILL_DIR>/../.mobile-delivery-playbook-runtime/ exists:
+  PLAYBOOK_ROOT = <SKILL_DIR>/../.mobile-delivery-playbook-runtime/
+else:
+  FAIL: "Cannot resolve playbook runtime. Run install_skills.sh or work from the playbook repo."
+```
+
+Use `$PLAYBOOK_ROOT` as prefix for all runtime references below.
 
 ## Config resolution
 1. Resolve `REPO_ROOT` from current working directory (`git rev-parse --show-toplevel`).
@@ -53,18 +84,19 @@ TECH_CONTEXT: |
 
 ## Preflight requirements (mandatory)
 0. Run preflight validator before any implementation step:
-   - `../.mobile-delivery-playbook-runtime/scripts/preflight_pipeline_runner.sh`
+   - `$PLAYBOOK_ROOT/scripts/preflight_pipeline_runner.sh`
    - Use `--output-format json` when machine-readable diagnostics are needed.
-1. Load canonical workflow and contracts from playbook repo:
-   - `../.mobile-delivery-playbook-runtime/workflow.md`
-   - `../.mobile-delivery-playbook-runtime/contracts/*.schema.json`
-2. Load project context paths from setup config (and auto-context files when enabled).
-3. Merge in optional task-level `TECH_CONTEXT` from runtime payload.
-4. In `REAL_RUN`, enforce branch workflow before edits:
+1. Load canonical workflow and contracts from playbook:
+   - `$PLAYBOOK_ROOT/workflow.md`
+   - `$PLAYBOOK_ROOT/contracts/*.schema.json`
+2. Validate all contract outputs against their JSON schemas using `$PLAYBOOK_ROOT/scripts/validate_contract.sh`.
+3. Load project context paths from setup config (and auto-context files when enabled).
+4. Merge in optional task-level `TECH_CONTEXT` from runtime payload.
+5. In `REAL_RUN`, enforce branch workflow before edits:
    - checkout base branch
    - `git pull -r`
    - create/switch to a working branch
-5. Never implement directly on base branch.
+6. Never implement directly on base branch.
 
 ## Run modes
 - `REAL_RUN`: full execution, including code edits, validations, and changelog updates.
@@ -125,7 +157,7 @@ TECH_CONTEXT: |
 ## Output expectations
 - Keep user informed with concise progress updates.
 - Keep outputs schema-compliant.
-- Generate `run_summary.md` per run mode using `../.mobile-delivery-playbook-runtime/scripts/generate_run_summary.sh`:
+- Generate `run_summary.md` per run mode using `$PLAYBOOK_ROOT/scripts/generate_run_summary.sh`:
   - `PLAN_ONLY`: at planning completion (before `PLAN_ONLY_DONE`).
   - `REAL_RUN`/`DRY_RUN`: at pipeline close.
 - `run_summary.md` must adapt sections to `RUN_MODE` (`PLAN_ONLY` vs `REAL_RUN/DRY_RUN`).

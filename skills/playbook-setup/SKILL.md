@@ -1,6 +1,12 @@
 ---
 name: playbook-setup
-description: Initialize or update per-project pipeline defaults by creating .playbook/playbook.config.yml (base branch, Jira prefix, tech context, and project context paths) for pipeline-runner.
+description: >
+  Initialize or update per-project pipeline defaults (.playbook/playbook.config.yml)
+  including base branch, Jira prefix, Figma URL, tech context, and project context paths.
+  Triggers when the user mentions playbook-setup, wants to configure a new project for the pipeline,
+  or provides a payload with SETUP_MODE.
+allowed-tools: Bash, Read, Write, Glob, Grep
+argument-hint: "SETUP_MODE: INIT REPO_PATH: /path/to/repo PROJECT_NAME: <name>"
 ---
 
 # Playbook Setup
@@ -10,13 +16,25 @@ Use this skill to create or update project-level configuration consumed by `pipe
 ## UX policy (chat-first)
 - The user should only provide a payload in chat.
 - Do not require terminal commands from the user.
-- Internally, run `../.mobile-delivery-playbook-runtime/scripts/bootstrap_playbook_setup.sh` (or equivalent logic) to auto-detect context and generate setup files.
-- Immediately after setup, run `../.mobile-delivery-playbook-runtime/scripts/preflight_pipeline_runner.sh --mode setup ...` and fail if validation fails.
+- Internally, run `$PLAYBOOK_ROOT/scripts/bootstrap_playbook_setup.sh` (or equivalent logic) to auto-detect context and generate setup files.
+- Immediately after setup, run `$PLAYBOOK_ROOT/scripts/preflight_pipeline_runner.sh --mode setup ...` and fail if validation fails.
 - Always return generated file paths and the next `pipeline-runner` payload.
+
+## Playbook root resolution
+
+Same algorithm as `pipeline-runner`:
+```
+if <REPO_ROOT>/scripts/preflight_pipeline_runner.sh exists:
+  PLAYBOOK_ROOT = <REPO_ROOT>   (direct repo / Cowork mode)
+else if <SKILL_DIR>/../.mobile-delivery-playbook-runtime/ exists:
+  PLAYBOOK_ROOT = <SKILL_DIR>/../.mobile-delivery-playbook-runtime/   (installed mode)
+else:
+  FAIL: "Cannot resolve playbook runtime."
+```
 
 ## Trigger phrase
 - Recommended invocation: plain text (`Use playbook-setup with this payload:`)
-- `@playbook-setup` is optional and may not be available in all contexts
+- Also triggers on `/playbook-setup` when available as a slash command
 
 ## Expected input block
 
@@ -58,7 +76,7 @@ Mode behavior:
 2. Validate `TARGET_BASE_BRANCH` exists locally or remotely.
 3. Validate `JIRA_BASE_URL` format (required) and `FIGMA_BASE_URL` format (optional).
 4. `SETUP_MODE` defaults to `INIT`.
-5. If `SETUP_MODE=UPDATE`, run `../.mobile-delivery-playbook-runtime/scripts/update_playbook_setup.sh` and preserve existing `context.*` values.
+5. If `SETUP_MODE=UPDATE`, run `$PLAYBOOK_ROOT/scripts/update_playbook_setup.sh` and preserve existing `context.*` values.
 6. `AUTO_DETECT_CONTEXT` defaults to `true`.
 7. If `AUTO_DETECT_CONTEXT=true`, auto-detect project context and write:
    - `.playbook/project_context.auto.md`
