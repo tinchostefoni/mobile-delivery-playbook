@@ -45,8 +45,7 @@ bash scripts/install_skills.sh
 ## `notify_google_chat.sh`
 - Purpose: sends workflow status notifications to Google Chat incoming webhook.
 - Used by: `pipeline-runner` when `NOTIFY_GOOGLE_CHAT=true`.
-- Requires:
-  - `GOOGLE_CHAT_WEBHOOK_URL` env var.
+- Requires: `GOOGLE_CHAT_WEBHOOK_URL` — set as env var or in `<REPO_ROOT>/.env.playbook` (auto-loaded).
 
 ## `validate_playbook.sh`
 - Purpose: validates this playbook repository consistency (skills, docs, scripts).

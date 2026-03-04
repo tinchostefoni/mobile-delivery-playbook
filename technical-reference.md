@@ -81,7 +81,7 @@ Implementation on base branch is not allowed.
 ## 5) Preflight behavior
 
 Script:
-- [scripts/preflight_pipeline_runner.sh](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/scripts/preflight_pipeline_runner.sh)
+- [scripts/preflight_pipeline_runner.sh](scripts/preflight_pipeline_runner.sh)
 
 Output modes:
 - `text` (human-readable)
@@ -107,7 +107,7 @@ Blocking policy highlights:
 ## 6) Run summary integration
 
 Generator:
-- [scripts/generate_run_summary.sh](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/scripts/generate_run_summary.sh)
+- [scripts/generate_run_summary.sh](scripts/generate_run_summary.sh)
 
 Default output:
 - `<REPO_ROOT>/.codex/pipeline-runner/<JIRA_KEY>/run_summary.md`
@@ -133,7 +133,7 @@ Artifacts are controlled by setup config, not per run payload.
 ## 8) Notifications
 
 Google Chat notifier script:
-- [scripts/notify_google_chat.sh](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/scripts/notify_google_chat.sh)
+- [scripts/notify_google_chat.sh](scripts/notify_google_chat.sh)
 
 Events:
 - `ACTION_REQUIRED`
@@ -156,3 +156,17 @@ When user requests `CREATE_MR` (or combined command) and MR cannot be created au
   - source/target branch values,
   - direct create-MR URL when available,
   - concise technical reason of auto-create failure.
+
+## 10) Secrets management (.env.playbook)
+
+Sensitive values (tokens, webhook URLs) are stored separately from project config in a gitignored file.
+
+File: `<REPO_ROOT>/.env.playbook` (gitignored, never committed)
+Template: [templates/.env.playbook.template](templates/.env.playbook.template)
+
+Available variables:
+| Variable | Required for | Description |
+|---|---|---|
+| `GOOGLE_CHAT_WEBHOOK_URL` | `notify_google_chat.sh` | Google Chat incoming webhook URL |
+
+All scripts that need these values auto-source `.env.playbook` if present. No extra configuration needed.

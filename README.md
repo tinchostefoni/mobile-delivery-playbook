@@ -52,12 +52,12 @@ TECH_CONTEXT: |
 4. If outputs look correct, execute `REAL_RUN`
 
 ## Main docs
-- Workflow: [workflow.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/workflow.md)
-- Standards: [mobile-gitlab-standard.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/mobile-gitlab-standard.md)
-- Skills index: [skills/README.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/skills/README.md)
-- Contracts: [contracts/README.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/contracts/README.md)
-- Technical guide: [technical-reference.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/technical-reference.md)
-- Scripts guide: [scripts/README.md](/Users/martinstefoni/Documents/Martín/mobile-delivery-playbook/scripts/README.md)
+- Workflow: [workflow.md](workflow.md)
+- Standards: [mobile-gitlab-standard.md](mobile-gitlab-standard.md)
+- Skills index: [skills/README.md](skills/README.md)
+- Contracts: [contracts/README.md](contracts/README.md)
+- Technical guide: [technical-reference.md](technical-reference.md)
+- Scripts guide: [scripts/README.md](scripts/README.md)
 
 ## MCPs
 - Required: Atlassian MCP, Figma MCP
@@ -65,6 +65,17 @@ TECH_CONTEXT: |
 - Notifications: Google Chat incoming webhook via `GOOGLE_CHAT_WEBHOOK_URL`
 
 Detailed setup and validation are in the technical guide.
+
+## Secrets setup (optional but recommended)
+
+Copy the template to your project repo and fill in your credentials:
+
+```bash
+cp templates/.env.playbook.template /path/to/your/repo/.env.playbook
+# then edit .env.playbook and fill in GOOGLE_CHAT_WEBHOOK_URL
+```
+
+The file is gitignored automatically by the playbook. Scripts load it without any extra configuration.
 
 ## Notes
 - Generated runtime files should stay in project `.codex/` and should be ignored in project `.gitignore`.

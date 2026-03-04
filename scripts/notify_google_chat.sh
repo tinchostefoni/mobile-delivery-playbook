@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Auto-load secrets from .env.playbook if present (repo root or parent dirs)
+_env_file=""
+_search_dir="${BASH_SOURCE[0]%/*}/.."
+for _candidate in "$_search_dir/.env.playbook" "$(git -C "$_search_dir" rev-parse --show-toplevel 2>/dev/null)/.env.playbook"; do
+  if [[ -f "$_candidate" ]]; then _env_file="$_candidate"; break; fi
+done
+if [[ -n "$_env_file" ]]; then
+  # shellcheck disable=SC1090
+  set -a; source "$_env_file"; set +a
+fi
+
 if [ -z "${GOOGLE_CHAT_WEBHOOK_URL:-}" ]; then
   echo "GOOGLE_CHAT_WEBHOOK_URL is not set" >&2
   exit 1
