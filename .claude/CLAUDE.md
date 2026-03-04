@@ -64,6 +64,23 @@ Read these files to understand the full system:
 
 - **GitLab MCP** — for MR creation and CI status checks
 
+## Git operations without GitLab MCP
+
+All git operations work via Bash tool without any MCP. Use the helper scripts:
+
+- **`EFFECTIVIZE_COMMIT`** → `bash $PLAYBOOK_ROOT/scripts/effectivize_commit.sh --repo <REPO_ROOT> --jira-key <KEY> --type <type> --scope <scope> --message "<msg>" [--push]`
+- **`CREATE_MR`** → `bash $PLAYBOOK_ROOT/scripts/create_mr.sh --repo <REPO_ROOT> --source <branch> --target <base-branch> --title "<title>" --desc "<desc>"`
+  - Tries: `glab CLI` → `curl + GitLab API` (needs `GITLAB_TOKEN` in `.env.playbook`) → manual URL fallback
+- **Secrets** → Store `GITLAB_TOKEN` and `GOOGLE_CHAT_WEBHOOK_URL` in `<REPO_ROOT>/.env.playbook` (gitignored).
+
+## Pipeline resume
+
+If the chat session was interrupted or the user says "resume pipeline <JIRA_KEY>":
+1. Run `bash $PLAYBOOK_ROOT/scripts/load_pipeline_state.sh --repo <REPO_ROOT> --jira-key <JIRA_KEY>`
+2. If state exists, report the last completed step and ask to confirm resuming.
+3. If no state, start fresh from step 1.
+4. Never re-run completed steps unless the user explicitly asks.
+
 ## Auto-loading behavior
 
 When starting a pipeline run, Claude must automatically:

@@ -121,14 +121,30 @@ Use `$PLAYBOOK_ROOT` as prefix for all runtime references below.
 
 ## Orchestration order
 0. For `PLAN_ONLY`, stop after planning artifacts, generate `run_summary.md`, send completion notification, and do not run implementation/command gating.
-1. Run `jira-intake`
-2. Run `figma-intake` when Figma fields are provided
-3. Run `spec-filler`
-4. Run `dev-executor`
+1. Run `jira-intake` → save state (`step=jira-intake`, `status=completed`)
+2. Run `figma-intake` when Figma fields are provided → save state (`step=figma-intake`, `status=completed`)
+3. Run `spec-filler` → save state (`step=spec-filler`, `status=completed`)
+4. Run `dev-executor` → save state (`step=dev-executor`, `status=completed`)
 5. Run local/relevant tests and QA gate checks
 6. Update changelog from real code diff
-7. Run `qa-retro`
+7. Run `qa-retro` → save state (`step=qa-retro`, `status=completed`)
 8. Send Google Chat notifications per workflow policy
+
+Save state after each step using:
+```bash
+bash $PLAYBOOK_ROOT/scripts/save_pipeline_state.sh \
+  --repo <REPO_ROOT> --jira-key <JIRA_KEY> --run-mode <RUN_MODE> \
+  --step <step-name> --status completed \
+  --working-branch <branch> \
+  --completed-steps <comma-separated-list>
+```
+
+## Pipeline resume
+If the user says "resume pipeline <JIRA_KEY>" or the session was interrupted:
+1. Load saved state: `bash $PLAYBOOK_ROOT/scripts/load_pipeline_state.sh --repo <REPO_ROOT> --jira-key <JIRA_KEY> --output-format json`
+2. If state found: report the last completed step and current working branch, then ask the user to confirm resuming from the next step.
+3. If state not found: start fresh from step 1.
+4. Never re-run already-completed steps unless the user explicitly requests it.
 
 ## Command gating
 - `PLAN_ONLY` never enters command gating.
@@ -137,12 +153,38 @@ Use `$PLAYBOOK_ROOT` as prefix for all runtime references below.
   - `EFFECTIVIZE_COMMIT`
   - `CREATE_MR`
   - `EFFECTIVIZE_COMMIT_AND_CREATE_MR`
-- If MR creation fails (permissions/network/provider restrictions), return a manual-MR fallback package in the same response:
-  - prefilled MR title
-  - prefilled MR description (short template by default)
-  - source/target branch values
-  - direct create-MR URL (when available)
-  - short reason of automatic MR failure
+
+### EFFECTIVIZE_COMMIT execution (no Git MCP required)
+Run `$PLAYBOOK_ROOT/scripts/effectivize_commit.sh` with the following parameters:
+```bash
+bash $PLAYBOOK_ROOT/scripts/effectivize_commit.sh \
+  --repo        <REPO_ROOT>       \
+  --jira-key    <JIRA_KEY>        \
+  --type        <conventional-type> \
+  --scope       <module-scope>    \
+  --message     "<short description>" \
+  [--body       "<extended body>"] \
+  [--push]
+```
+- Derives commit subject: `<type>(<scope>): [<JIRA_KEY>] <description>`
+- Excludes `.env.playbook` and `.playbook/pipeline-runner/` from staging automatically.
+- Add `--push` to push to origin in the same step.
+
+### CREATE_MR execution (no Git MCP required)
+Run `$PLAYBOOK_ROOT/scripts/create_mr.sh` with:
+```bash
+bash $PLAYBOOK_ROOT/scripts/create_mr.sh \
+  --repo    <REPO_ROOT>         \
+  --source  <working-branch>    \
+  --target  <target-base-branch> \
+  --title   "<MR title>"        \
+  --desc    "<MR description>"  \
+  [--jira-key <JIRA_KEY>]       \
+  [--remove-source-branch]
+```
+Strategy order: `glab CLI` → `curl + GitLab API (GITLAB_TOKEN)` → `manual URL fallback`.
+Configure `GITLAB_TOKEN` in `.env.playbook` to enable automatic API-based MR creation.
+Exit code 0 = MR created automatically. Exit code 1 = manual fallback package returned.
 
 ## Error policy
 - Attempt autonomous retries and fixes first.
