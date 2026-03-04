@@ -53,7 +53,7 @@ Notes:
 7. If `RUN_MODE=REAL_RUN`, enforce branch setup before editing:
    - checkout `TARGET_BASE_BRANCH`
    - run `git pull -r`
-   - create/switch to a working branch (`<ISSUE-ID>-<kind>-<desc>`)
+   - create/switch to a working branch: `<ISSUE-ID>-<kind>-<short-kebab-desc>` — no slash prefixes (e.g. `LSF-705-fix-avatar-refactor`, never `codex/LSF-705-...` or `feature/LSF-705-...`)
 8. Never implement directly on base branch (`dev`/`develop`/`development`).
 
 Preflight failure policy:

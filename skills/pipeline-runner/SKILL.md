@@ -95,7 +95,10 @@ Use `$PLAYBOOK_ROOT` as prefix for all runtime references below.
 5. In `REAL_RUN`, enforce branch workflow before edits:
    - checkout base branch
    - `git pull -r`
-   - create/switch to a working branch
+   - create/switch to a working branch using the exact format from `mobile-gitlab-standard.md`:
+     `<ISSUE-ID>-<kind>-<short-kebab-description>`
+     Examples: `LSF-705-fix-avatar-refactor`, `LSF-123-feature-login-flow`
+     **No slash prefixes** (`codex/`, `feature/`, `fix/`, etc.) — the ISSUE-ID is the only prefix.
 6. Never implement directly on base branch.
 
 ## Run modes
