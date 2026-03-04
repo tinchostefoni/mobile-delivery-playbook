@@ -146,13 +146,98 @@ Events:
 
 `ERROR_BLOCKING` should be sent only after autonomous retry/repair attempts are exhausted.
 
-## 9) MR fallback behavior
+## 9) MR creation strategy
 
-When user requests `CREATE_MR` (or combined command) and MR cannot be created automatically:
-- keep flow in `ACTION_REQUIRED` (not finalized),
-- return a manual fallback package in chat with:
-  - prefilled MR title,
-  - prefilled MR description (short template),
-  - source/target branch values,
-  - direct create-MR URL when available,
-  - concise technical reason of auto-create failure.
+MR creation is handled by `scripts/create_mr.sh` in three ordered strategies (no GitLab MCP required):
+
+**Strategy 1 — glab CLI** (if `glab` is installed and authenticated):
+```bash
+glab mr create --source-branch <source> --target-branch <target> --title <title> --description <desc> --yes
+```
+
+**Strategy 2 — GitLab REST API** (if `GITLAB_TOKEN` is set in `.env.playbook`):
+```bash
+POST $GITLAB_API_URL/projects/:encoded_project/merge_requests
+Headers: PRIVATE-TOKEN: $GITLAB_TOKEN
+Body: { source_branch, target_branch, title, description, remove_source_branch, squash }
+```
+
+**Strategy 3 — Manual fallback** (always available, exit code 1):
+Returns a pre-filled package in chat:
+- prefilled MR title
+- prefilled MR description (from template)
+- source/target branch values
+- direct GitLab create-MR URL with pre-encoded query params
+- concise reason for automatic creation failure
+
+Script reference: [scripts/create_mr.sh](scripts/create_mr.sh)
+
+## 10) Git helper scripts
+
+All git operations work via Bash tool without any MCP.
+
+### `effectivize_commit.sh`
+Stages and commits code changes following the conventional commit convention:
+
+```
+<type>(<scope>): [<JIRA_KEY>] <description>
+```
+
+- Excludes `.env.playbook` and `.playbook/pipeline-runner/` from staging automatically.
+- Accepts `--push` to push to origin in the same invocation.
+- Script reference: [scripts/effectivize_commit.sh](scripts/effectivize_commit.sh)
+
+### `create_mr.sh`
+Creates a GitLab MR using the 3-strategy cascade described in section 9.
+- Script reference: [scripts/create_mr.sh](scripts/create_mr.sh)
+
+## 11) Pipeline state persistence
+
+After each skill step, `pipeline-runner` saves execution state to disk so interrupted sessions can resume.
+
+State file location:
+```
+<ARTIFACTS_PATH>/<JIRA_KEY>/pipeline_state.json
+```
+
+Default `ARTIFACTS_PATH`: `<REPO_ROOT>/.playbook/pipeline-runner`
+
+State schema (version 1):
+```json
+{
+  "schema_version": 1,
+  "jira_key": "LSF-123",
+  "run_mode": "REAL_RUN",
+  "working_branch": "LSF-123-feat-login",
+  "current_step": "dev-executor",
+  "status": "completed",
+  "completed_steps": ["jira-intake", "figma-intake", "spec-filler", "dev-executor"],
+  "notes": "",
+  "updated_at": "2026-03-04T12:00:00Z",
+  "created_at": "2026-03-04T11:45:00Z",
+  "history": [...]
+}
+```
+
+Resume flow (triggered by `resume pipeline <JIRA_KEY>`):
+1. Run `scripts/load_pipeline_state.sh --repo <REPO_ROOT> --jira-key <KEY> --output-format json`
+2. If found: report last completed step and working branch, ask user to confirm resuming.
+3. If not found: start fresh.
+
+Scripts: [scripts/save_pipeline_state.sh](scripts/save_pipeline_state.sh), [scripts/load_pipeline_state.sh](scripts/load_pipeline_state.sh)
+
+## 12) Secrets management (.env.playbook)
+
+Sensitive values (tokens, webhook URLs) are stored separately from project config in a gitignored file.
+
+File: `<REPO_ROOT>/.env.playbook` (gitignored, never committed)
+Template: [templates/.env.playbook.template](templates/.env.playbook.template)
+
+Available variables:
+| Variable | Required for | Description |
+|---|---|---|
+| `GITLAB_TOKEN` | `create_mr.sh` API strategy | GitLab personal access token (api + write_repository scopes) |
+| `GITLAB_API_URL` | `create_mr.sh` API strategy | Default: `https://gitlab.com/api/v4`. Override for self-hosted instances. |
+| `GOOGLE_CHAT_WEBHOOK_URL` | `notify_google_chat.sh` | Google Chat incoming webhook URL |
+
+All scripts that need these values auto-source `.env.playbook` if present. No extra configuration needed.

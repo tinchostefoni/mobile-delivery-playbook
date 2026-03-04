@@ -61,11 +61,31 @@ TECH_CONTEXT: |
 
 ## MCPs
 - Required: Atlassian MCP, Figma MCP
-- Recommended: GitLab MCP
+- Optional: GitLab MCP (for MR creation — covered by `scripts/create_mr.sh` without MCP)
 - Notifications: Google Chat incoming webhook via `GOOGLE_CHAT_WEBHOOK_URL`
 
 Detailed setup and validation are in the technical guide.
 
+## Secrets setup (optional but recommended)
+
+Copy the template to your project repo and fill in your credentials:
+
+```bash
+cp templates/.env.playbook.template /path/to/your/repo/.env.playbook
+# then edit .env.playbook and fill in GITLAB_TOKEN and GOOGLE_CHAT_WEBHOOK_URL
+```
+
+The file is gitignored automatically by the playbook. Scripts load it without any extra configuration.
+
+## Git operations (no MCP required)
+
+All git operations work via Bash — no GitLab MCP needed:
+
+- `EFFECTIVIZE_COMMIT` → runs `scripts/effectivize_commit.sh` (staged commit with conventional format)
+- `CREATE_MR` → runs `scripts/create_mr.sh` (tries `glab` → GitLab API → manual URL fallback)
+- Pipeline state is saved after each step and can be resumed if the session is interrupted
+
 ## Notes
-- Generated runtime files should stay in project `.playbook/` and should be ignored in project `.gitignore`.
+- Generated runtime files stay in project `.playbook/` and are gitignored.
 - Commit/push/merge are not automatic by default and require explicit chat commands.
+- If a chat session is interrupted, say `resume pipeline <JIRA_KEY>` to pick up from the last completed step.

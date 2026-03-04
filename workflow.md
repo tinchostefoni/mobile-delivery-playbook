@@ -123,12 +123,13 @@ Recommended usage sequence:
 - `EFFECTIVIZE_COMMIT`
 - `CREATE_MR`
 - `EFFECTIVIZE_COMMIT_AND_CREATE_MR`
-12. If command includes MR creation, open/update MR in GitLab
-   - If automatic MR creation fails (permissions/network), return manual fallback in response:
-     - prefilled MR title
-     - prefilled MR description (short template)
+12. If command includes MR creation, run `scripts/create_mr.sh` (no GitLab MCP required):
+   - Strategy 1: `glab CLI` (if installed and authenticated)
+   - Strategy 2: `curl + GitLab API` using `GITLAB_TOKEN` from `.env.playbook`
+   - Strategy 3: manual fallback package in response:
+     - prefilled MR title and description (short template)
      - source/target branches
-     - direct create-MR URL (if available)
+     - direct create-MR URL (pre-filled query params)
      - concise failure reason
 13. CI runs in GitLab MR (external gate)
 14. For non-`PLAN_ONLY` runs, generate `run_summary.md` at pipeline close (default: `<REPO_ROOT>/.playbook/pipeline-runner/<JIRA_KEY>/run_summary.md`).
@@ -147,6 +148,9 @@ Recommended usage sequence:
 - Until CI finishes green, merge decision must be considered pending.
 
 ## 6) Notification policy (Google Chat)
+Notifications are sent via `scripts/notify_google_chat.sh`, which auto-loads `GOOGLE_CHAT_WEBHOOK_URL`
+from `.env.playbook` if present. No manual env setup required.
+
 Send notification on every event below:
 
 1. `ACTION_REQUIRED`
