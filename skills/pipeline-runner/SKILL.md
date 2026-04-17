@@ -195,7 +195,42 @@ Launch `code-reviewer` and `naming-reviewer` agents in parallel on the diff. Bot
 8. Update `CHANGELOG.md` under `[Unreleased]` — must be done here, before command gating.
 9. Run `qa-retro` → save state (`step=qa-retro`, `status=completed`)
 10. Send Google Chat notifications per workflow policy
-11. Wait for user command (`EFFECTIVIZE_COMMIT` / `CREATE_MR` / `EFFECTIVIZE_COMMIT_AND_CREATE_MR`)
+11. **Generate and print MR draft** before entering command gating (always, in REAL_RUN and DRY_RUN).
+    Derive values from `ticket_spec`, `implementation_brief`, `qa_result`, and current branch:
+
+    ```
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    MR DRAFT
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    Title:
+    [<JIRA_KEY>] <type>: <short explanation>
+
+    Description:
+    ### Summary
+    <1–2 líneas del ticket_spec.summary>
+
+    ### Changes
+    - <key change from implementation_result>
+    - <key change from implementation_result>
+
+    ### Testing Steps
+    1. <from qa_result.testing_steps or implementation_brief>
+    2. <...>
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    Source branch : <working-branch>
+    Target branch : <TARGET_BASE_BRANCH>
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    ```
+
+    Rules for the MR title:
+    - Format: `[<JIRA_KEY>] <type>: <short explanation>` (from `mobile-gitlab-standard.md` §3)
+    - `type` reflects the dominant change of the MR (may differ from individual commit types)
+    - Max 100 characters total
+    - `[<JIRA_KEY>]` is mandatory in the MR title (distinct from commit format — no JIRA_KEY in commit)
+
+    Store the draft in pipeline state so `CREATE_MR` can reuse it without re-generating.
+
+12. Wait for user command (`EFFECTIVIZE_COMMIT` / `CREATE_MR` / `EFFECTIVIZE_COMMIT_AND_CREATE_MR`)
 12. ▶ **GATE 4 — Pre-commit guard** (runs when EFFECTIVIZE_COMMIT is issued)
 13. **Memory close**: At end of session (after user command or when saying "done"/"listo"),
     call `mem_session_summary` per protocol in `CLAUDE.md`. This is mandatory.
@@ -242,20 +277,22 @@ bash $PLAYBOOK_ROOT/scripts/effectivize_commit.sh \
 - Add `--push` to push to origin in the same step.
 
 ### CREATE_MR execution (no Git MCP required)
+Use the MR title and description pre-generated at step 11. Do not ask the user to supply them.
 Run `$PLAYBOOK_ROOT/scripts/create_mr.sh` with:
 ```bash
 bash $PLAYBOOK_ROOT/scripts/create_mr.sh \
   --repo    <REPO_ROOT>         \
   --source  <working-branch>    \
   --target  <target-base-branch> \
-  --title   "<MR title>"        \
-  --desc    "<MR description>"  \
+  --title   "<MR title from step 11 draft>" \
+  --desc    "<MR description from step 11 draft>" \
   [--jira-key <JIRA_KEY>]       \
   [--remove-source-branch]
 ```
 Strategy order: `glab CLI` → `curl + GitLab API (GITLAB_TOKEN)` → `manual URL fallback`.
 Configure `GITLAB_TOKEN` in `.env.playbook` to enable automatic API-based MR creation.
 Exit code 0 = MR created automatically. Exit code 1 = manual fallback package returned.
+On fallback: display the pre-filled MR URL + title + description so the user can open it directly in the browser.
 
 ## Error policy
 - Attempt autonomous retries and fixes first.
