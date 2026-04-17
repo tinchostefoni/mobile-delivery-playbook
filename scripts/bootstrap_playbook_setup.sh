@@ -16,12 +16,12 @@ Options:
   --auto-detect-context <bool> true|false (default: true)
   --notify-google-chat <bool>  true|false (default: true)
   --write-artifacts <bool>     true|false (default: false)
-  --artifacts-path <PATH>      Optional; default <repo>/.codex/pipeline-runner
+  --artifacts-path <PATH>      Optional; default <repo>/.playbook/pipeline-runner
 
 Output files (inside target repo):
-  .codex/playbook.config.yml
-  .codex/project_context.auto.md (only when auto-detect true)
-  .codex/project_context_paths.auto.txt (only when auto-detect true)
+  .playbook/playbook.config.yml
+  .playbook/project_context.auto.md (only when auto-detect true)
+  .playbook/project_context_paths.auto.txt (only when auto-detect true)
 EOF
 }
 
@@ -124,7 +124,7 @@ if [[ -z "$PROJECT_NAME" ]]; then
 fi
 
 if [[ -z "$ARTIFACTS_PATH" ]]; then
-  ARTIFACTS_PATH="$REPO_PATH/.codex/pipeline-runner"
+  ARTIFACTS_PATH="$REPO_PATH/.playbook/pipeline-runner"
 fi
 
 if [[ -n "$JIRA_BASE_URL" ]]; then
@@ -269,11 +269,11 @@ else
   TECH_CONTEXT_LINES+=("Auto-detection disabled by user.")
 fi
 
-mkdir -p "$REPO_PATH/.codex"
+mkdir -p "$REPO_PATH/.playbook"
 
-CONFIG_FILE="$REPO_PATH/.codex/playbook.config.yml"
-AUTO_CONTEXT_FILE="$REPO_PATH/.codex/project_context.auto.md"
-AUTO_PATHS_FILE="$REPO_PATH/.codex/project_context_paths.auto.txt"
+CONFIG_FILE="$REPO_PATH/.playbook/playbook.config.yml"
+AUTO_CONTEXT_FILE="$REPO_PATH/.playbook/project_context.auto.md"
+AUTO_PATHS_FILE="$REPO_PATH/.playbook/project_context_paths.auto.txt"
 
 if [[ -f "$CONFIG_FILE" ]]; then
   cp "$CONFIG_FILE" "$CONFIG_FILE.bak.$(date +%Y%m%d%H%M%S)"

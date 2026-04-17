@@ -6,7 +6,7 @@ usage() {
 Usage:
   bash scripts/update_playbook_setup.sh [--repo <absolute-path>] [options]
 
-Updates existing .codex/playbook.config.yml without re-running full bootstrap detection.
+Updates existing .playbook/playbook.config.yml without re-running full bootstrap detection.
 
 Options:
   --project-name <NAME>
@@ -72,8 +72,8 @@ scalar_from_yaml() {
 
 if [[ -z "$REPO_PATH" ]]; then
   current_repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-  if [[ -n "$current_repo_root" && -f "$current_repo_root/.codex/playbook.config.yml" ]]; then
-    current_config="$current_repo_root/.codex/playbook.config.yml"
+  if [[ -n "$current_repo_root" && -f "$current_repo_root/.playbook/playbook.config.yml" ]]; then
+    current_config="$current_repo_root/.playbook/playbook.config.yml"
     configured_repo_from_init="$(sed -n 's/^  repo_path: //p' "$current_config" | head -n 1)"
     configured_repo_from_init="${configured_repo_from_init%\"}"
     configured_repo_from_init="${configured_repo_from_init#\"}"
@@ -82,13 +82,13 @@ if [[ -z "$REPO_PATH" ]]; then
 fi
 
 if [[ -z "$REPO_PATH" ]]; then
-  fail "Cannot resolve REPO_PATH from existing playbook config. Pass --repo or run from a repository that already has .codex/playbook.config.yml."
+  fail "Cannot resolve REPO_PATH from existing playbook config. Pass --repo or run from a repository that already has .playbook/playbook.config.yml."
 fi
 
 [[ -d "$REPO_PATH" ]] || fail "Repo path does not exist: $REPO_PATH"
 [[ -d "$REPO_PATH/.git" ]] || fail "Not a git repository: $REPO_PATH"
 
-CONFIG_FILE="$REPO_PATH/.codex/playbook.config.yml"
+CONFIG_FILE="$REPO_PATH/.playbook/playbook.config.yml"
 [[ -f "$CONFIG_FILE" ]] || fail "Missing $CONFIG_FILE. Run playbook-setup init first."
 
 existing_project_name="$(scalar_from_yaml "$CONFIG_FILE" "name")"
@@ -133,7 +133,7 @@ else
 fi
 
 if [[ "$WRITE_ARTIFACTS" == "true" && -z "$ARTIFACTS_PATH" ]]; then
-  ARTIFACTS_PATH="$REPO_PATH/.codex/pipeline-runner"
+  ARTIFACTS_PATH="$REPO_PATH/.playbook/pipeline-runner"
 fi
 
 context_block="$(awk '/^context:/{flag=1} flag{print}' "$CONFIG_FILE")"

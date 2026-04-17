@@ -1,6 +1,11 @@
 ---
 name: pipeline-runner
-description: Orchestrate the Jira+Figma pipeline end-to-end from a single payload block using canonical workflow and contracts.
+description: >
+  Orchestrate the Jira+Figma mobile delivery pipeline end-to-end from a single payload block.
+  Triggers when the user mentions pipeline-runner, wants to run implementation for a Jira ticket,
+  or provides a payload with JIRA_KEY and RUN_MODE.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
+argument-hint: "JIRA_KEY: <KEY> FIGMA_NODE_IDS: <ids> RUN_MODE: PLAN_ONLY|DRY_RUN|REAL_RUN"
 ---
 
 # Pipeline Runner
@@ -9,7 +14,7 @@ Use this skill when the user wants to run the canonical pipeline from a single m
 
 ## Trigger phrase
 - Recommended invocation: plain text (`Use pipeline-runner with this payload:`)
-- `@pipeline-runner` is optional and may not be available in all contexts
+- Also triggers on `/pipeline-runner` when available as a slash command
 
 ## Expected input block
 
@@ -25,15 +30,36 @@ TECH_CONTEXT: |
 
 ## Defaults
 - `RUN_MODE`: `REAL_RUN`
-- `RUN_SUMMARY_PATH`: `<REPO_ROOT>/.codex/pipeline-runner/<JIRA_KEY>/run_summary.md`
+- `RUN_SUMMARY_PATH`: `<REPO_ROOT>/.playbook/pipeline-runner/<JIRA_KEY>/run_summary.md`
+
+## Playbook root resolution
+
+PLAYBOOK_ROOT is resolved in this priority order:
+
+1. **Direct/Cowork mode** — playbook repo folder is open as the selected directory:
+   - Detect: `<REPO_ROOT>/scripts/preflight_pipeline_runner.sh` exists
+   - `PLAYBOOK_ROOT` = `<REPO_ROOT>`
+
+2. **Plugin mode** — plugin installed via `claude plugin install mobile-delivery-playbook`:
+   - Detect: `<SKILL_DIR>/../../scripts/preflight_pipeline_runner.sh` exists
+   - `PLAYBOOK_ROOT` = `<SKILL_DIR>/../..` (the plugin root)
+
+3. **Legacy installed mode** — skills copied via `install_skills.sh`:
+   - Detect: `<SKILL_DIR>/../.mobile-delivery-playbook-runtime/` exists
+   - `PLAYBOOK_ROOT` = `<SKILL_DIR>/../.mobile-delivery-playbook-runtime/`
+
+4. **Fail** — none of the above match:
+   - Report: "Cannot resolve playbook runtime. Install the plugin or open the playbook repo in Cowork."
+
+Use `$PLAYBOOK_ROOT` as prefix for all runtime references (scripts, contracts, templates).
 
 ## Config resolution
 1. Resolve `REPO_ROOT` from current working directory (`git rev-parse --show-toplevel`).
-2. Auto-load `<REPO_ROOT>/.codex/playbook.config.yml`.
+2. Auto-load `<REPO_ROOT>/.playbook/playbook.config.yml`.
 3. If config is missing, fail with explicit message: run `playbook-setup` first.
 4. If available, read additional auto-context files:
-   - `<REPO_ROOT>/.codex/project_context.auto.md`
-   - `<REPO_ROOT>/.codex/project_context_paths.auto.txt`
+   - `<REPO_ROOT>/.playbook/project_context.auto.md`
+   - `<REPO_ROOT>/.playbook/project_context_paths.auto.txt`
 5. Apply values with precedence:
    - explicit payload fields
    - setup config fields
@@ -53,18 +79,22 @@ TECH_CONTEXT: |
 
 ## Preflight requirements (mandatory)
 0. Run preflight validator before any implementation step:
-   - `../.mobile-delivery-playbook-runtime/scripts/preflight_pipeline_runner.sh`
+   - `$PLAYBOOK_ROOT/scripts/preflight_pipeline_runner.sh`
    - Use `--output-format json` when machine-readable diagnostics are needed.
-1. Load canonical workflow and contracts from playbook repo:
-   - `../.mobile-delivery-playbook-runtime/workflow.md`
-   - `../.mobile-delivery-playbook-runtime/contracts/*.schema.json`
-2. Load project context paths from setup config (and auto-context files when enabled).
-3. Merge in optional task-level `TECH_CONTEXT` from runtime payload.
-4. In `REAL_RUN`, enforce branch workflow before edits:
+1. Load canonical workflow and contracts from playbook:
+   - `$PLAYBOOK_ROOT/workflow.md`
+   - `$PLAYBOOK_ROOT/contracts/*.schema.json`
+2. Validate all contract outputs against their JSON schemas using `$PLAYBOOK_ROOT/scripts/validate_contract.sh`.
+3. Load project context paths from setup config (and auto-context files when enabled).
+4. Merge in optional task-level `TECH_CONTEXT` from runtime payload.
+5. In `REAL_RUN`, enforce branch workflow before edits:
    - checkout base branch
    - `git pull -r`
-   - create/switch to a working branch
-5. Never implement directly on base branch.
+   - create/switch to a working branch using the exact format from `mobile-gitlab-standard.md`:
+     `<ISSUE-ID>-<kind>-<short-kebab-description>`
+     Examples: `LSF-705-fix-avatar-refactor`, `LSF-123-feature-login-flow`
+     **No slash prefixes** (`codex/`, `feature/`, `fix/`, etc.) — the ISSUE-ID is the only prefix.
+6. Never implement directly on base branch.
 
 ## Run modes
 - `REAL_RUN`: full execution, including code edits, validations, and changelog updates.
@@ -87,16 +117,95 @@ TECH_CONTEXT: |
 - `text` (default): human-readable console messages.
 - `json`: single structured object with `status`, `code`, `field`, `message`, `warnings`.
 
+## Blocking gates
+
+Four gates are mandatory and sequential. Each one blocks the next step until it passes.
+A gate failure must be reported to the user with a clear reason — pipeline does not continue.
+
+### GATE 1 — Branch guard (REAL_RUN only, before any file change)
+1. Run `git rev-parse --abbrev-ref HEAD` to confirm current branch.
+2. If HEAD is `main`, `master`, `develop`, or `development`: STOP. Report error. Do not proceed.
+3. If not on a working branch yet:
+   a. `git checkout <TARGET_BASE_BRANCH>`
+   b. `git pull -r`
+   c. `git checkout -b <ISSUE-ID>-<kind>-<short-kebab-desc>`
+4. Validate branch name: `<ISSUE-ID>-<kind>-<desc>`, no slash prefixes, no spaces.
+5. Save branch name to pipeline state.
+6. **BLOCK** if base branch is missing locally AND remotely, or if current branch is a protected branch.
+
+### GATE 2 — Spec guard (after spec-filler, before dev-executor)
+1. Read `implementation_brief` work_items.
+2. For each item, evaluate whether it touches architecture layers, module boundaries, or
+   dependency edges that are NOT mentioned in the brief.
+3. If any out-of-scope items found:
+   - List them in a numbered block: `[OUT-OF-SCOPE] <item>: <why it touches arch>`
+   - Wait for explicit user approval per item before proceeding.
+   - Do not run `dev-executor` until all items are approved or removed.
+4. If all items are in scope: proceed immediately without user interaction.
+5. **BLOCK** dev-executor until gate passes.
+
+### GATE 3 — Diff review (after dev-executor, before QA)
+1. Run `git diff HEAD --name-only` to get the actual changed files.
+2. Compare against `implementation_brief.files_forecast` (or declared files in the brief).
+3. For each file changed that was NOT in the forecast:
+   - Mark as `[UNPLANNED] <file>: <reason it was touched>`
+   - Provide a one-line technical justification.
+4. If unplanned changes exist without justification: STOP and ask user to approve or revert.
+5. If all changes are within forecast or justified: proceed.
+6. **BLOCK** QA gate until all unplanned changes are justified or reverted.
+
+### GATE 4 — Pre-commit guard (when user issues EFFECTIVIZE_COMMIT)
+1. Run `git rev-parse --abbrev-ref HEAD` — verify HEAD is NOT a protected branch.
+2. Run `git diff HEAD --name-only` — verify no `.env.playbook`, secrets, or binary files are staged.
+3. Verify `CHANGELOG.md` has been updated in this run under `## [Unreleased]`.
+   Check that new entries exist (diff `CHANGELOG.md` against last commit).
+4. Verify changelog entries follow format rules: technical language, one line per change, max 100 chars.
+5. Verify commit message follows conventional format: `<type>(<scope>): [<JIRA_KEY>] <desc>`.
+6. **BLOCK** commit if any check fails. Report exactly which check failed and why.
+
 ## Orchestration order
-0. For `PLAN_ONLY`, stop after planning artifacts, generate `run_summary.md`, send completion notification, and do not run implementation/command gating.
-1. Run `jira-intake`
-2. Run `figma-intake` when Figma fields are provided
-3. Run `spec-filler`
-4. Run `dev-executor`
-5. Run local/relevant tests and QA gate checks
-6. Update changelog from real code diff
-7. Run `qa-retro`
-8. Send Google Chat notifications per workflow policy
+0. **Memory recovery**: If Engram MCP is available, call `mem_context` filtered to this project
+   before any other step — to recover past decisions, patterns, and discoveries.
+   Then load saved pipeline state (resume check).
+   For `PLAN_ONLY`, stop after planning artifacts, generate `run_summary.md`, send completion
+   notification, and do not run implementation/command gating.
+1. Run `jira-intake` → save state (`step=jira-intake`, `status=completed`)
+2. Run `figma-intake` when Figma fields are provided → save state (`step=figma-intake`, `status=completed`)
+3. Run `spec-filler` → save state (`step=spec-filler`, `status=completed`)
+   - **mem_save**: Save the implementation approach as a `decision` with the spec summary
+     (architecture choices, key constraints, affected modules) using `topic_key: "spec/<JIRA_KEY>"`.
+4. ▶ **GATE 2 — Spec guard** (blocks step 5 until approved)
+5. Run `dev-executor` → save state (`step=dev-executor`, `status=completed`)
+   - **mem_save** after each non-obvious implementation decision, bugfix root cause, or discovered
+     pattern — use `type: decision | bugfix | pattern | discovery` accordingly.
+6. ▶ **GATE 3 — Diff review** (blocks step 7 until all unplanned changes are justified)
+7. Run local/relevant tests and QA gate checks
+   - **mem_save** any test failure root causes that were non-obvious, using `type: bugfix`.
+8. Update `CHANGELOG.md` under `[Unreleased]` — must be done here, before command gating.
+9. Run `qa-retro` → save state (`step=qa-retro`, `status=completed`)
+10. Send Google Chat notifications per workflow policy
+11. Wait for user command (`EFFECTIVIZE_COMMIT` / `CREATE_MR` / `EFFECTIVIZE_COMMIT_AND_CREATE_MR`)
+12. ▶ **GATE 4 — Pre-commit guard** (runs when EFFECTIVIZE_COMMIT is issued)
+13. **Memory close**: At end of session (after user command or when saying "done"/"listo"),
+    call `mem_session_summary` per protocol in `CLAUDE.md`. This is mandatory.
+
+Note: **GATE 1** runs at the start of REAL_RUN, before step 1, as part of pre-run setup.
+
+Save state after each step using:
+```bash
+bash $PLAYBOOK_ROOT/scripts/save_pipeline_state.sh \
+  --repo <REPO_ROOT> --jira-key <JIRA_KEY> --run-mode <RUN_MODE> \
+  --step <step-name> --status completed \
+  --working-branch <branch> \
+  --completed-steps <comma-separated-list>
+```
+
+## Pipeline resume
+If the user says "resume pipeline <JIRA_KEY>" or the session was interrupted:
+1. Load saved state: `bash $PLAYBOOK_ROOT/scripts/load_pipeline_state.sh --repo <REPO_ROOT> --jira-key <JIRA_KEY> --output-format json`
+2. If state found: report the last completed step and current working branch, then ask the user to confirm resuming from the next step.
+3. If state not found: start fresh from step 1.
+4. Never re-run already-completed steps unless the user explicitly requests it.
 
 ## Command gating
 - `PLAN_ONLY` never enters command gating.
@@ -105,12 +214,38 @@ TECH_CONTEXT: |
   - `EFFECTIVIZE_COMMIT`
   - `CREATE_MR`
   - `EFFECTIVIZE_COMMIT_AND_CREATE_MR`
-- If MR creation fails (permissions/network/provider restrictions), return a manual-MR fallback package in the same response:
-  - prefilled MR title
-  - prefilled MR description (short template by default)
-  - source/target branch values
-  - direct create-MR URL (when available)
-  - short reason of automatic MR failure
+
+### EFFECTIVIZE_COMMIT execution (no Git MCP required)
+Run `$PLAYBOOK_ROOT/scripts/effectivize_commit.sh` with the following parameters:
+```bash
+bash $PLAYBOOK_ROOT/scripts/effectivize_commit.sh \
+  --repo        <REPO_ROOT>       \
+  --jira-key    <JIRA_KEY>        \
+  --type        <conventional-type> \
+  --scope       <module-scope>    \
+  --message     "<short description>" \
+  [--body       "<extended body>"] \
+  [--push]
+```
+- Derives commit subject: `<type>(<scope>): [<JIRA_KEY>] <description>`
+- Excludes `.env.playbook` and `.playbook/pipeline-runner/` from staging automatically.
+- Add `--push` to push to origin in the same step.
+
+### CREATE_MR execution (no Git MCP required)
+Run `$PLAYBOOK_ROOT/scripts/create_mr.sh` with:
+```bash
+bash $PLAYBOOK_ROOT/scripts/create_mr.sh \
+  --repo    <REPO_ROOT>         \
+  --source  <working-branch>    \
+  --target  <target-base-branch> \
+  --title   "<MR title>"        \
+  --desc    "<MR description>"  \
+  [--jira-key <JIRA_KEY>]       \
+  [--remove-source-branch]
+```
+Strategy order: `glab CLI` → `curl + GitLab API (GITLAB_TOKEN)` → `manual URL fallback`.
+Configure `GITLAB_TOKEN` in `.env.playbook` to enable automatic API-based MR creation.
+Exit code 0 = MR created automatically. Exit code 1 = manual fallback package returned.
 
 ## Error policy
 - Attempt autonomous retries and fixes first.
@@ -125,7 +260,7 @@ TECH_CONTEXT: |
 ## Output expectations
 - Keep user informed with concise progress updates.
 - Keep outputs schema-compliant.
-- Generate `run_summary.md` per run mode using `../.mobile-delivery-playbook-runtime/scripts/generate_run_summary.sh`:
+- Generate `run_summary.md` per run mode using `$PLAYBOOK_ROOT/scripts/generate_run_summary.sh`:
   - `PLAN_ONLY`: at planning completion (before `PLAN_ONLY_DONE`).
   - `REAL_RUN`/`DRY_RUN`: at pipeline close.
 - `run_summary.md` must adapt sections to `RUN_MODE` (`PLAN_ONLY` vs `REAL_RUN/DRY_RUN`).

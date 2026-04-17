@@ -1,2 +1,4 @@
-.codex/
+.playbook/
 .env.playbook
+engram/
+dist/

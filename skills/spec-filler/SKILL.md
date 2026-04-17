@@ -1,6 +1,10 @@
 ---
 name: spec-filler
-description: Merge ticket_spec.json and design_spec.json into implementation_brief.json following pipeline/contracts/implementation_brief.schema.json.
+description: >
+  Merge ticket_spec and design_spec into an implementation_brief
+  following the implementation_brief JSON schema. Creates a dev-ready
+  implementation plan with work items mapped to acceptance criteria.
+allowed-tools: Bash, Read, Write
 ---
 
 # Spec Filler
@@ -13,7 +17,7 @@ Use this skill to create a dev-ready implementation brief.
 - Repo constraints/patterns
 
 ## Output
-- `implementation_brief.json` compliant with `pipeline/contracts/implementation_brief.schema.json`
+- `implementation_brief.json` compliant with `contracts/implementation_brief.schema.json`
 
 ## Workflow
 1. Merge Jira + Figma + repo constraints.
@@ -21,3 +25,4 @@ Use this skill to create a dev-ready implementation brief.
 3. Enforce `no_auto_commit: true`.
 4. Build validation plan (unit/integration/UI as relevant).
 5. Preserve unresolved items as `MISSING:` and assumptions as `ASSUMPTION:`.
+6. Validate output against `contracts/implementation_brief.schema.json` using `$PLAYBOOK_ROOT/scripts/validate_contract.sh` when available.

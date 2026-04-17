@@ -14,7 +14,7 @@ Usage:
     [--output <path>]
 
 Notes:
-  - By default writes to <repo-root>/.codex/pipeline-runner/<JIRA_KEY>/run_summary.md
+  - By default writes to <repo-root>/.playbook/pipeline-runner/<JIRA_KEY>/run_summary.md
   - Content is mode-aware (PLAN_ONLY vs REAL_RUN/DRY_RUN).
 EOF
 }
@@ -57,7 +57,7 @@ case "$STATUS" in
 esac
 
 if [[ -z "$OUTPUT" ]]; then
-  OUTPUT="${REPO_ROOT}/.codex/pipeline-runner/${JIRA_KEY}/run_summary.md"
+  OUTPUT="${REPO_ROOT}/.playbook/pipeline-runner/${JIRA_KEY}/run_summary.md"
 fi
 
 mkdir -p "$(dirname "$OUTPUT")"
