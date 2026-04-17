@@ -58,11 +58,10 @@ Run: `git diff --cached -- CHANGELOG.md`
 
 ### 4. Commit message format (BLOCK)
 Review the proposed commit message:
-- MUST follow: `<type>(<scope>): [<JIRA_KEY>] <description>`
+- MUST follow: `<type>(<scope>): <description>`
 - `type` MUST be one of: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
 - `scope` MUST be present and match a real module/feature name
-- `[JIRA_KEY]` MUST be present and match the current Jira key
-- Description MUST be non-empty and under 72 characters
+- Description MUST be non-empty and under 100 characters
 - BLOCK if any of these are missing or malformed
 
 ### 5. Diff scope alignment (WARN)

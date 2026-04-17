@@ -18,7 +18,7 @@ set -euo pipefail
 #     [--output-format text|json]
 #
 # Commit message format (from template):
-#   <type>(<scope>): [<JIRA-KEY>] <short description>
+#   <type>(<scope>): <short description>
 #
 # Excluded from staging (never committed by this script):
 #   .env.playbook
@@ -31,7 +31,7 @@ usage() {
 Usage: bash scripts/effectivize_commit.sh --repo <path> --jira-key <KEY> --type <type> --scope <scope> --message <msg> [options]
 Options:
   --repo <path>          Absolute path to git repository
-  --jira-key <KEY-123>   Jira issue key
+  --jira-key <KEY-123>   Jira issue key (optional, not included in commit subject)
   --type <type>          Conventional commit type (feat, fix, chore, refactor, test, docs...)
   --scope <scope>        Conventional commit scope (module, area, layer)
   --message <text>       Short commit description (imperative mood)
@@ -67,13 +67,12 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -n "$REPO_PATH" ]]    || { echo "ERROR: --repo is required" >&2; exit 2; }
-[[ -n "$JIRA_KEY" ]]     || { echo "ERROR: --jira-key is required" >&2; exit 2; }
 [[ -n "$COMMIT_TYPE" ]]  || { echo "ERROR: --type is required" >&2; exit 2; }
 [[ -n "$COMMIT_SCOPE" ]] || { echo "ERROR: --scope is required" >&2; exit 2; }
 [[ -n "$COMMIT_MSG" ]]   || { echo "ERROR: --message is required" >&2; exit 2; }
 
 # Build conventional commit subject line
-COMMIT_SUBJECT="${COMMIT_TYPE}(${COMMIT_SCOPE}): [${JIRA_KEY}] ${COMMIT_MSG}"
+COMMIT_SUBJECT="${COMMIT_TYPE}(${COMMIT_SCOPE}): ${COMMIT_MSG}"
 
 # Assemble full commit message
 if [[ -n "$COMMIT_BODY" ]]; then

@@ -5,15 +5,14 @@ Status: global rules closed
 ## 1) Commit message standard
 
 Base format:
-`<type>(<scope>): [<ISSUE-ID>] <short description>`
+`<type>(<scope>): <short description>`
 
 Example:
-`fix(networking): [PROJECT-123] corrigió el reintento ante timeout en login`
+`fix(networking): corrigió el reintento ante timeout en login`
 
 Mandatory rules:
 - `type` is required.
 - `scope` is required.
-- Jira ticket is required: `[<ISSUE-ID>]`.
 - Short description must be clear and concise.
 - Max header length: 100 chars.
 
@@ -92,9 +91,6 @@ Breve descripción del cambio en 1–2 líneas.
 ### Testing Steps
 1. Abrir la app y navegar a <pantalla>.
 2. Ejecutar <acción> y verificar <resultado>.
-
-### Changelog
-- [ ] Actualizado `CHANGELOG.md` en `Unreleased` siguiendo Keep a Changelog.
 ```
 
 ## 5) Changelog policy

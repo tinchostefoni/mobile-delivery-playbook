@@ -231,14 +231,13 @@ Run `$PLAYBOOK_ROOT/scripts/effectivize_commit.sh` with the following parameters
 ```bash
 bash $PLAYBOOK_ROOT/scripts/effectivize_commit.sh \
   --repo        <REPO_ROOT>       \
-  --jira-key    <JIRA_KEY>        \
   --type        <conventional-type> \
   --scope       <module-scope>    \
   --message     "<short description>" \
   [--body       "<extended body>"] \
   [--push]
 ```
-- Derives commit subject: `<type>(<scope>): [<JIRA_KEY>] <description>`
+- Derives commit subject: `<type>(<scope>): <description>`
 - Excludes `.env.playbook` and `.playbook/pipeline-runner/` from staging automatically.
 - Add `--push` to push to origin in the same step.
 

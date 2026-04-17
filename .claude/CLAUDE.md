@@ -169,7 +169,7 @@ Skipping `mem_session_summary` means the next session starts completely blind. T
 
 All git operations work via Bash tool without any MCP. Use the helper scripts:
 
-- **`EFFECTIVIZE_COMMIT`** → `bash $PLAYBOOK_ROOT/scripts/effectivize_commit.sh --repo <REPO_ROOT> --jira-key <KEY> --type <type> --scope <scope> --message "<msg>" [--push]`
+- **`EFFECTIVIZE_COMMIT`** → `bash $PLAYBOOK_ROOT/scripts/effectivize_commit.sh --repo <REPO_ROOT> --type <type> --scope <scope> --message "<msg>" [--push]`
 - **`CREATE_MR`** → `bash $PLAYBOOK_ROOT/scripts/create_mr.sh --repo <REPO_ROOT> --source <branch> --target <base-branch> --title "<title>" --desc "<desc>"`
   - Tries: `glab CLI` → `curl + GitLab API` (needs `GITLAB_TOKEN` in `.env.playbook`) → manual URL fallback
 - **Secrets** → Store `GITLAB_TOKEN` and `GOOGLE_CHAT_WEBHOOK_URL` in `<REPO_ROOT>/.env.playbook` (gitignored).
