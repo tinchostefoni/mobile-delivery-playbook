@@ -122,6 +122,52 @@ Use `$PLAYBOOK_ROOT` as prefix for all runtime references below.
 - `text` (default): human-readable console messages.
 - `json`: single structured object with `status`, `code`, `field`, `message`, `warnings`.
 
+## Blocking gates
+
+Four gates are mandatory and sequential. Each one blocks the next step until it passes.
+A gate failure must be reported to the user with a clear reason — pipeline does not continue.
+
+### GATE 1 — Branch guard (REAL_RUN only, before any file change)
+1. Run `git rev-parse --abbrev-ref HEAD` to confirm current branch.
+2. If HEAD is `main`, `master`, `develop`, or `development`: STOP. Report error. Do not proceed.
+3. If not on a working branch yet:
+   a. `git checkout <TARGET_BASE_BRANCH>`
+   b. `git pull -r`
+   c. `git checkout -b <ISSUE-ID>-<kind>-<short-kebab-desc>`
+4. Validate branch name: `<ISSUE-ID>-<kind>-<desc>`, no slash prefixes, no spaces.
+5. Save branch name to pipeline state.
+6. **BLOCK** if base branch is missing locally AND remotely, or if current branch is a protected branch.
+
+### GATE 2 — Spec guard (after spec-filler, before dev-executor)
+1. Read `implementation_brief` work_items.
+2. For each item, evaluate whether it touches architecture layers, module boundaries, or
+   dependency edges that are NOT mentioned in the brief.
+3. If any out-of-scope items found:
+   - List them in a numbered block: `[OUT-OF-SCOPE] <item>: <why it touches arch>`
+   - Wait for explicit user approval per item before proceeding.
+   - Do not run `dev-executor` until all items are approved or removed.
+4. If all items are in scope: proceed immediately without user interaction.
+5. **BLOCK** dev-executor until gate passes.
+
+### GATE 3 — Diff review (after dev-executor, before QA)
+1. Run `git diff HEAD --name-only` to get the actual changed files.
+2. Compare against `implementation_brief.files_forecast` (or declared files in the brief).
+3. For each file changed that was NOT in the forecast:
+   - Mark as `[UNPLANNED] <file>: <reason it was touched>`
+   - Provide a one-line technical justification.
+4. If unplanned changes exist without justification: STOP and ask user to approve or revert.
+5. If all changes are within forecast or justified: proceed.
+6. **BLOCK** QA gate until all unplanned changes are justified or reverted.
+
+### GATE 4 — Pre-commit guard (when user issues EFFECTIVIZE_COMMIT)
+1. Run `git rev-parse --abbrev-ref HEAD` — verify HEAD is NOT a protected branch.
+2. Run `git diff HEAD --name-only` — verify no `.env.playbook`, secrets, or binary files are staged.
+3. Verify `CHANGELOG.md` has been updated in this run under `## [Unreleased]`.
+   Check that new entries exist (diff `CHANGELOG.md` against last commit).
+4. Verify changelog entries follow format rules: technical language, one line per change, max 100 chars.
+5. Verify commit message follows conventional format: `<type>(<scope>): [<JIRA_KEY>] <desc>`.
+6. **BLOCK** commit if any check fails. Report exactly which check failed and why.
+
 ## Orchestration order
 0. **Memory recovery**: If Engram MCP is available, call `mem_context` filtered to this project
    before any other step — to recover past decisions, patterns, and discoveries.
@@ -133,16 +179,22 @@ Use `$PLAYBOOK_ROOT` as prefix for all runtime references below.
 3. Run `spec-filler` → save state (`step=spec-filler`, `status=completed`)
    - **mem_save**: Save the implementation approach as a `decision` with the spec summary
      (architecture choices, key constraints, affected modules) using `topic_key: "spec/<JIRA_KEY>"`.
-4. Run `dev-executor` → save state (`step=dev-executor`, `status=completed`)
+4. ▶ **GATE 2 — Spec guard** (blocks step 5 until approved)
+5. Run `dev-executor` → save state (`step=dev-executor`, `status=completed`)
    - **mem_save** after each non-obvious implementation decision, bugfix root cause, or discovered
      pattern — use `type: decision | bugfix | pattern | discovery` accordingly.
-5. Run local/relevant tests and QA gate checks
+6. ▶ **GATE 3 — Diff review** (blocks step 7 until all unplanned changes are justified)
+7. Run local/relevant tests and QA gate checks
    - **mem_save** any test failure root causes that were non-obvious, using `type: bugfix`.
-6. Update changelog from real code diff
-7. Run `qa-retro` → save state (`step=qa-retro`, `status=completed`)
-8. Send Google Chat notifications per workflow policy
-9. **Memory close**: At end of session (after user command or when saying "done"/"listo"),
-   call `mem_session_summary` per protocol in `CLAUDE.md`. This is mandatory.
+8. Update `CHANGELOG.md` under `[Unreleased]` — must be done here, before command gating.
+9. Run `qa-retro` → save state (`step=qa-retro`, `status=completed`)
+10. Send Google Chat notifications per workflow policy
+11. Wait for user command (`EFFECTIVIZE_COMMIT` / `CREATE_MR` / `EFFECTIVIZE_COMMIT_AND_CREATE_MR`)
+12. ▶ **GATE 4 — Pre-commit guard** (runs when EFFECTIVIZE_COMMIT is issued)
+13. **Memory close**: At end of session (after user command or when saying "done"/"listo"),
+    call `mem_session_summary` per protocol in `CLAUDE.md`. This is mandatory.
+
+Note: **GATE 1** runs at the start of REAL_RUN, before step 1, as part of pre-run setup.
 
 Save state after each step using:
 ```bash

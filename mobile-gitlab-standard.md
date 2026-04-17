@@ -99,13 +99,62 @@ Breve descripción del cambio en 1–2 líneas.
 
 ## 5) Changelog policy
 
-- Changelog must follow Keep a Changelog 1.1.0.
-- New entries go under `## [Unreleased]`.
-- Every code change must be represented.
-- Entries must be based on real code diff and verified behavior, not Jira ticket wording.
-- Use past tense in all entries.
-- Allowed sections: `Added`, `Changed`, `Fixed`, `Removed`, `Security`.
-- `Updated` must not be used.
+Format standard: Keep a Changelog 1.1.0.
+
+### Placement
+- New entries go under `## [Unreleased]` only.
+- Never write entries under a versioned section (e.g. `## [1.2.0]`).
+- Changelog must be updated **before** `EFFECTIVIZE_COMMIT` is issued.
+
+### Entry format
+```
+### <Section>
+- <PastTenseVerb> <component/file>: <what changed>
+```
+
+- One line per logical change. Max 100 chars per line.
+- Language: technical. No natural language paragraphs. No explanatory sentences.
+- Verb must be past tense and specific: `Fixed`, `Added`, `Removed`, `Refactored`, `Replaced`,
+  `Extracted`, `Renamed`, `Updated`, `Migrated`, `Exposed`, `Disabled`.
+- Component/file reference is mandatory. Do not write generic entries.
+
+### Allowed sections
+`Added`, `Changed`, `Fixed`, `Removed`, `Security`
+
+Prohibited: `Updated` as a section name. `Updated` is allowed as a verb inside entries.
+
+### Good examples
+```markdown
+### Fixed
+- Fixed `SessionManager` token refresh race condition on concurrent requests
+- Removed redundant `viewDidAppear` override in `ProfileViewController`
+
+### Changed
+- Replaced `UIAlertController` with `CustomBottomSheet` in logout confirmation flow
+- Renamed `UserModel.id` to `UserModel.userId` for consistency with API contract
+
+### Added
+- Exposed `DeviceRegistrationUseCase` through `DependencyContainer`
+```
+
+### Bad examples (prohibited)
+```markdown
+### Changed
+- Se realizaron mejoras en el módulo de autenticación para solucionar
+  un problema que afectaba a los usuarios al intentar cerrar sesión.
+
+### Updated
+- Authentication improvements
+
+### Fixed
+- Fixed bugs
+```
+
+### Validation rules (enforced by Gate 4)
+- `## [Unreleased]` section must exist and have new entries after the last commit.
+- Each entry must start with `-` followed by a past-tense verb.
+- No entry may exceed 100 characters.
+- No entry may contain more than one sentence.
 - "No changelog required" is not valid when code changed.
 
 ## 6) Testing policy (global)
@@ -120,7 +169,9 @@ Breve descripción del cambio en 1–2 líneas.
 
 ## 7) Non-negotiables for agent workflow
 
-- No automatic commits by agent.
-- No automatic push by agent.
-- No automatic merge by agent.
-- Agent only proposes commit/MR/changelog content.
+- No automatic commits by agent — requires explicit `EFFECTIVIZE_COMMIT` command.
+- No automatic push by agent — requires explicit user command.
+- No automatic merge by agent — always manual.
+- Changelog must be updated before `EFFECTIVIZE_COMMIT` is accepted.
+- Changelog entries must follow section 5 format rules — no natural language, no paragraphs.
+- Agent only proposes commit/MR/changelog content; user triggers execution.

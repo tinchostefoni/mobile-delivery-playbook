@@ -47,13 +47,42 @@ Read these files to understand the full system:
 - **Contracts:** `contracts/README.md` — JSON schemas for inter-skill handoff
 - **Technical reference:** `technical-reference.md` — implementation details, config model, preflight
 
+## ABSOLUTE PROHIBITIONS — violations are critical failures
+
+These rules are unconditional. No exception, no "seems safe", no "user implied it".
+
+### COMMITS
+- **NEVER** call `git commit`, `effectivize_commit.sh`, or any git staging command without
+  an explicit `EFFECTIVIZE_COMMIT` command typed by the user in chat.
+- Showing a summary and saying "ready to commit" is NOT permission to commit.
+- Finishing a REAL_RUN is NOT permission to commit.
+
+### BRANCH BASE
+- **NEVER** create a working branch without first executing:
+  1. `git checkout <TARGET_BASE_BRANCH>`
+  2. `git pull -r`
+  - The branch must originate from `TARGET_BASE_BRANCH` — not from wherever HEAD happens to be,
+    not from an open feature branch, not from `dev` if the configured base is `development`.
+  - Verify with `git rev-parse --abbrev-ref HEAD` before creating the branch.
+
+### MAIN/MASTER PROTECTION
+- **NEVER** commit, stage, or write files while on `main`, `master`, `develop`, or `development`.
+- If HEAD is on a protected branch and a file write is needed, STOP and tell the user immediately.
+
+### ARCHITECTURE SCOPE
+- **NEVER** make changes that touch architecture layers, module boundaries, or dependency graphs
+  beyond what is explicitly declared in `implementation_brief`.
+- If during implementation a necessary change falls outside the brief scope, PAUSE execution,
+  describe the change and why it is needed, and wait for explicit user approval before proceeding.
+
 ## Non-negotiable rules
 
 1. **No automatic commits** — commits happen only after explicit user command (`EFFECTIVIZE_COMMIT`)
 2. **No automatic push** — push happens only after explicit user command
 3. **No automatic merge** — merge is always manual
 4. **Never implement on base branch** — always create a working branch first
-5. **Changelog is mandatory** — every code change must be represented in `CHANGELOG.md` under `Unreleased`
+5. **Changelog before commit** — `CHANGELOG.md` must be updated under `[Unreleased]` before
+   `EFFECTIVIZE_COMMIT` is accepted. See changelog format rules in `mobile-gitlab-standard.md`.
 
 ## Required MCPs
 
