@@ -6,6 +6,7 @@ description: >
   or provides a payload with JIRA_KEY and RUN_MODE.
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 argument-hint: "JIRA_KEY: <KEY> FIGMA_NODE_IDS: <ids> RUN_MODE: PLAN_ONLY|DRY_RUN|REAL_RUN"
+user_invocable: true
 ---
 
 # Pipeline Runner

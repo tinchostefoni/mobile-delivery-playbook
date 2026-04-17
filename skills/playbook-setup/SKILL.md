@@ -7,6 +7,7 @@ description: >
   or provides a payload with SETUP_MODE.
 allowed-tools: Bash, Read, Write, Glob, Grep
 argument-hint: "SETUP_MODE: INIT REPO_PATH: /path/to/repo PROJECT_NAME: <name>"
+user_invocable: true
 ---
 
 # Playbook Setup
