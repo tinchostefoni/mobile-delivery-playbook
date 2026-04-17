@@ -1,0 +1,23 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "mobile-delivery-playbook",
+  "version": "1.0.0",
+  "description": "iOS mobile delivery pipeline for Jira + Figma + GitLab teams using Claude",
+  "owner": {
+    "name": "Martín Stefoni",
+    "email": "mstefoni@zafirus.tech"
+  },
+  "plugins": [
+    {
+      "name": "mobile-delivery-playbook",
+      "description": "Full iOS delivery pipeline from Jira ticket to GitLab MR. Includes 7 skills, blocking enforcement gates, Engram memory, and strict changelog/commit/branch rules.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Martín Stefoni",
+        "email": "mstefoni@zafirus.tech"
+      },
+      "source": ".",
+      "category": "productivity"
+    }
+  ]
+}

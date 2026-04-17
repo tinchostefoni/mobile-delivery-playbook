@@ -13,13 +13,20 @@ Operational playbook for mobile teams using Jira + Figma + GitLab with Claude sk
 
 ### Option A — Plugin (recommended)
 
-Install once:
+Install once (two steps):
 ```bash
+# 1. Add the marketplace
 claude plugin marketplace add tinchostefoni/mobile-delivery-playbook
+
+# 2. Install the plugin
 claude plugin install mobile-delivery-playbook
 ```
 
 Done. Open any Cowork session and the pipeline skills are available immediately.
+Update when a new version is released:
+```bash
+claude plugin update mobile-delivery-playbook
+```
 
 ### Option B — Cowork with repo folder
 
