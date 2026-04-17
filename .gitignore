@@ -2,3 +2,5 @@
 .env.playbook
 engram/
 dist/
+.DS_Store
+**/.DS_Store
