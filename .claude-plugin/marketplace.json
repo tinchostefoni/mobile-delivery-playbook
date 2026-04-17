@@ -5,7 +5,7 @@
   "description": "iOS mobile delivery pipeline for Jira + Figma + GitLab teams using Claude",
   "owner": {
     "name": "Martín Stefoni",
-    "email": "mstefoni@zafirus.tech"
+    "email": "tincho.stefoni@gmail.com"
   },
   "plugins": [
     {
@@ -14,7 +14,7 @@
       "version": "1.0.0",
       "author": {
         "name": "Martín Stefoni",
-        "email": "mstefoni@zafirus.tech"
+        "email": "tincho.stefoni@gmail.com"
       },
       "source": "./",
       "category": "productivity"
