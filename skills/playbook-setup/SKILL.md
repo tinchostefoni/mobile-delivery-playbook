@@ -55,6 +55,9 @@ PROJECT_CONTEXT_PATHS: docs/architecture.md,README.md,Sources/App/CompositionRoo
 WRITE_ARTIFACTS: false
 # only when WRITE_ARTIFACTS=true
 ARTIFACTS_PATH: <REPO_PATH>/.playbook/pipeline-runner
+
+# optional: install Gentleman Guardian Angel pre-commit hook
+GGA_SETUP: false
 ```
 
 Mode behavior:
@@ -123,6 +126,36 @@ context:
     - "README.md"
     - "docs/architecture.md"
 ```
+
+## Optional: GGA setup
+
+If `GGA_SETUP: true` is included in the payload, run the following after config is written:
+
+1. **Check installation**: Run `which gga` or `gga --version`.
+   - If not installed, print install instructions and skip remaining steps:
+     ```
+     GGA not found. Install with:
+       brew install gentleman-programming/tap/gga    # macOS
+       curl -fsSL https://raw.githubusercontent.com/Gentleman-Programming/gentleman-guardian-angel/main/install.sh | bash
+     Then re-run playbook-setup with GGA_SETUP: true.
+     ```
+2. **Copy AGENTS.md template**: Copy `$PLAYBOOK_ROOT/templates/AGENTS.md` to `<REPO_PATH>/AGENTS.md`
+   only if `AGENTS.md` does not already exist. Never overwrite an existing one.
+3. **Initialize GGA config**: Run `gga init` in `<REPO_PATH>` to generate `.gga` if it doesn't exist.
+   Then update `.gga` to set:
+   - `PROVIDER="claude"`
+   - `FILE_PATTERNS="*.swift"`
+   - `EXCLUDE_PATTERNS="*Tests.swift,*Spec.swift,*Mock*.swift"`
+   - `RULES_FILE="AGENTS.md"`
+4. **Install the hook**: Run `gga install` in `<REPO_PATH>`.
+5. **Report**: Print which files were created/updated and confirm the hook is active.
+
+GGA relationship with Gate 4:
+- **GGA** runs at the git level on every `git commit` — validates Swift code quality
+  against `AGENTS.md` rules before the commit is created.
+- **Gate 4 (commit-reviewer)** runs when the user issues `EFFECTIVIZE_COMMIT` — validates
+  commit message format, changelog presence, branch safety, and staged file secrets.
+- They are complementary layers: GGA catches code quality, Gate 4 catches workflow compliance.
 
 ## Handoff to pipeline-runner
 Return this starter payload after setup:

@@ -311,3 +311,85 @@ If the context window is compacted (summarized to free space), the agent must:
 3. Only then continue working
 
 This prevents losing all progress accumulated before the compaction.
+
+## 14) Gentleman Guardian Angel (GGA)
+
+GGA is an optional pre-commit hook that validates staged Swift files against project rules
+before any commit is created. It is a complementary layer to Gate 4, not a replacement.
+
+### Install (per target repo, one-time)
+
+```bash
+# macOS
+brew install gentleman-programming/tap/gga
+
+# Any platform
+curl -fsSL https://raw.githubusercontent.com/Gentleman-Programming/gentleman-guardian-angel/main/install.sh | bash
+```
+
+Or run `playbook-setup` with `GGA_SETUP: true` to automate the full setup.
+
+### Per-repo configuration
+
+After `gga init`, edit `.gga` in the repo root:
+
+```bash
+PROVIDER="claude"
+FILE_PATTERNS="*.swift"
+EXCLUDE_PATTERNS="*Tests.swift,*Spec.swift,*Mock*.swift"
+RULES_FILE="AGENTS.md"
+```
+
+`ANTHROPIC_API_KEY` must be set in the shell environment (or `.env.playbook` if sourced).
+
+### AGENTS.md
+
+The rules file GGA reads. A project-ready iOS/Swift template is at:
+`$PLAYBOOK_ROOT/templates/AGENTS.md`
+
+Copy it to your repo root and customize:
+```bash
+cp $PLAYBOOK_ROOT/templates/AGENTS.md <REPO_ROOT>/AGENTS.md
+```
+
+Never overwrite a project's existing `AGENTS.md` automatically.
+
+### Hook commands
+
+```bash
+gga install          # Install pre-commit hook (appends to existing hook if present)
+gga run              # Manual run on staged files (uses cache)
+gga run --no-cache   # Manual run, ignore cache
+gga uninstall        # Remove hook
+```
+
+### How it fits in the pipeline
+
+```
+git commit
+  └─► GGA pre-commit hook
+        ├─ Reads staged *.swift files
+        ├─ Reads AGENTS.md rules
+        ├─ Sends to Claude → STATUS: PASSED / STATUS: FAILED
+        └─ FAILED → commit blocked; user fixes code and retries
+             ↓
+        Commit created
+             ↓
+  EFFECTIVIZE_COMMIT (user command)
+        └─► Gate 4 (commit-reviewer agent)
+              ├─ Protected branch check
+              ├─ Staged file safety (secrets)
+              ├─ Changelog presence
+              ├─ Commit message format
+              └─ Diff scope alignment
+```
+
+### Layer responsibilities
+
+| Layer | Scope | Runs when |
+|-------|-------|-----------|
+| **GGA** | Swift code quality (memory, force unwrap, naming, arch) | Every `git commit` |
+| **Gate 4** | Workflow compliance (message format, changelog, branch, secrets) | `EFFECTIVIZE_COMMIT` command |
+
+GGA is git-native and runs independently of the pipeline agent. Gate 4 is agent-driven and
+enforces playbook-level rules that GGA does not cover.
