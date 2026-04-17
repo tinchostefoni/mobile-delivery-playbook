@@ -22,15 +22,11 @@ Use this skill to create or update project-level configuration consumed by `pipe
 
 ## Playbook root resolution
 
-Same algorithm as `pipeline-runner`:
-```
-if <REPO_ROOT>/scripts/preflight_pipeline_runner.sh exists:
-  PLAYBOOK_ROOT = <REPO_ROOT>   (direct repo / Cowork mode)
-else if <SKILL_DIR>/../.mobile-delivery-playbook-runtime/ exists:
-  PLAYBOOK_ROOT = <SKILL_DIR>/../.mobile-delivery-playbook-runtime/   (installed mode)
-else:
-  FAIL: "Cannot resolve playbook runtime."
-```
+Same priority order as `pipeline-runner`:
+1. Direct/Cowork: `<REPO_ROOT>/scripts/preflight_pipeline_runner.sh` exists → `PLAYBOOK_ROOT = <REPO_ROOT>`
+2. Plugin mode: `<SKILL_DIR>/../../scripts/preflight_pipeline_runner.sh` exists → `PLAYBOOK_ROOT = <SKILL_DIR>/../..`
+3. Legacy: `<SKILL_DIR>/../.mobile-delivery-playbook-runtime/` exists → `PLAYBOOK_ROOT = <SKILL_DIR>/../.mobile-delivery-playbook-runtime/`
+4. Fail: "Cannot resolve playbook runtime. Install the plugin or open the playbook repo in Cowork."
 
 ## Trigger phrase
 - Recommended invocation: plain text (`Use playbook-setup with this payload:`)

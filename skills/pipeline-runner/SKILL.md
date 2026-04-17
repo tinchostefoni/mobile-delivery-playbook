@@ -34,29 +34,24 @@ TECH_CONTEXT: |
 
 ## Playbook root resolution
 
-The playbook runtime (scripts, contracts, workflow, templates) can live in two locations depending on context:
+PLAYBOOK_ROOT is resolved in this priority order:
 
-1. **Direct repo mode** (Cowork / working inside the playbook repo):
-   - `PLAYBOOK_ROOT` = git root of the playbook repo itself.
-   - Scripts at `$PLAYBOOK_ROOT/scripts/`, contracts at `$PLAYBOOK_ROOT/contracts/`, etc.
-   - Detect: `$REPO_ROOT/skills/pipeline-runner/SKILL.md` exists → you are inside the playbook repo.
+1. **Direct/Cowork mode** — playbook repo folder is open as the selected directory:
+   - Detect: `<REPO_ROOT>/scripts/preflight_pipeline_runner.sh` exists
+   - `PLAYBOOK_ROOT` = `<REPO_ROOT>`
 
-2. **Installed mode** (Claude Code CLI / skills installed to `~/.claude/skills/`):
-   - `PLAYBOOK_ROOT` = `../.mobile-delivery-playbook-runtime/` relative to this skill file.
-   - Scripts at `$PLAYBOOK_ROOT/scripts/`, contracts at `$PLAYBOOK_ROOT/contracts/`, etc.
-   - Detect: this skill is at `~/.claude/skills/pipeline-runner/SKILL.md`.
+2. **Plugin mode** — plugin installed via `claude plugin install mobile-delivery-playbook`:
+   - Detect: `<SKILL_DIR>/../../scripts/preflight_pipeline_runner.sh` exists
+   - `PLAYBOOK_ROOT` = `<SKILL_DIR>/../..` (the plugin root)
 
-Resolution algorithm:
-```
-if <REPO_ROOT>/scripts/preflight_pipeline_runner.sh exists:
-  PLAYBOOK_ROOT = <REPO_ROOT>
-else if <SKILL_DIR>/../.mobile-delivery-playbook-runtime/ exists:
-  PLAYBOOK_ROOT = <SKILL_DIR>/../.mobile-delivery-playbook-runtime/
-else:
-  FAIL: "Cannot resolve playbook runtime. Run install_skills.sh or work from the playbook repo."
-```
+3. **Legacy installed mode** — skills copied via `install_skills.sh`:
+   - Detect: `<SKILL_DIR>/../.mobile-delivery-playbook-runtime/` exists
+   - `PLAYBOOK_ROOT` = `<SKILL_DIR>/../.mobile-delivery-playbook-runtime/`
 
-Use `$PLAYBOOK_ROOT` as prefix for all runtime references below.
+4. **Fail** — none of the above match:
+   - Report: "Cannot resolve playbook runtime. Install the plugin or open the playbook repo in Cowork."
+
+Use `$PLAYBOOK_ROOT` as prefix for all runtime references (scripts, contracts, templates).
 
 ## Config resolution
 1. Resolve `REPO_ROOT` from current working directory (`git rev-parse --show-toplevel`).

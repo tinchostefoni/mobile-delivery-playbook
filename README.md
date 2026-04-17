@@ -10,16 +10,27 @@ Operational playbook for mobile teams using Jira + Figma + GitLab with Claude sk
 - Optional Google Chat notifications.
 
 ## Quick start
-1. Install bundled skills:
 
+### Option A — Plugin (recommended)
+
+Install once:
 ```bash
-bash scripts/install_skills.sh
+claude plugin marketplace add Gentleman-Programming/mobile-delivery-playbook
+claude plugin install mobile-delivery-playbook
 ```
 
-2. Run one-time project setup from chat:
+Done. Open any Cowork session and the pipeline skills are available immediately.
+
+### Option B — Cowork with repo folder
+
+Clone this repo and select the folder in Cowork. Claude reads `CLAUDE.md` automatically and the skills are available without any install step. Use this mode when developing the playbook itself.
+
+---
+
+Once installed (either option), run one-time project setup from chat:
 
 ```md
-playbook-setup
+Use playbook-setup with this payload:
 SETUP_MODE: INIT
 REPO_PATH: /absolute/path/to/repo
 PROJECT_NAME: <name>
@@ -33,16 +44,13 @@ AUTO_DETECT_CONTEXT: true
 WRITE_ARTIFACTS: false
 ```
 
-3. Execute a run from chat:
+Then run per-ticket from chat:
 
 ```md
-pipeline-runner
+Use pipeline-runner with this payload:
 JIRA_KEY: <ISSUE-ID>
 FIGMA_NODE_IDS: 12:34,56:78
-RUN_MODE: REAL_RUN|DRY_RUN|PLAN_ONLY
-
-TECH_CONTEXT: |
-  Task-level technical notes and constraints.
+RUN_MODE: PLAN_ONLY
 ```
 
 ## Recommended run flow

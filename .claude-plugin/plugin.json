@@ -1,0 +1,11 @@
+{
+  "name": "mobile-delivery-playbook",
+  "version": "1.0.0",
+  "description": "iOS mobile delivery pipeline for Jira + Figma + GitLab. Automates the flow from ticket intake to merge request with strict enforcement gates, blocking validation, and persistent memory via Engram.",
+  "author": {
+    "name": "Gentleman Programming"
+  },
+  "repository": "https://github.com/Gentleman-Programming/mobile-delivery-playbook",
+  "license": "MIT",
+  "keywords": ["ios", "mobile", "jira", "figma", "gitlab", "pipeline", "delivery", "swift"]
+}
