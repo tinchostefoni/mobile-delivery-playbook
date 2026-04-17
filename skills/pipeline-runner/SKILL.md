@@ -134,34 +134,45 @@ A gate failure must be reported to the user with a clear reason — pipeline doe
 6. **BLOCK** if base branch is missing locally AND remotely, or if current branch is a protected branch.
 
 ### GATE 2 — Spec guard (after spec-filler, before dev-executor)
-1. Read `implementation_brief` work_items.
-2. For each item, evaluate whether it touches architecture layers, module boundaries, or
-   dependency edges that are NOT mentioned in the brief.
-3. If any out-of-scope items found:
-   - List them in a numbered block: `[OUT-OF-SCOPE] <item>: <why it touches arch>`
-   - Wait for explicit user approval per item before proceeding.
-   - Do not run `dev-executor` until all items are approved or removed.
-4. If all items are in scope: proceed immediately without user interaction.
+1. Launch `arch-reviewer` agent with the `implementation_brief` and project architecture context.
+2. Wait for the agent's verdict.
+3. If verdict is `BLOCK`:
+   - Show the violations list to the user.
+   - Wait for explicit user approval or brief correction before proceeding.
+   - Do not run `dev-executor` until PASS or user explicitly overrides each BLOCK item.
+4. If verdict is `PASS` or `WARN`: proceed immediately.
 5. **BLOCK** dev-executor until gate passes.
 
 ### GATE 3 — Diff review (after dev-executor, before QA)
-1. Run `git diff HEAD --name-only` to get the actual changed files.
-2. Compare against `implementation_brief.files_forecast` (or declared files in the brief).
-3. For each file changed that was NOT in the forecast:
-   - Mark as `[UNPLANNED] <file>: <reason it was touched>`
-   - Provide a one-line technical justification.
-4. If unplanned changes exist without justification: STOP and ask user to approve or revert.
-5. If all changes are within forecast or justified: proceed.
-6. **BLOCK** QA gate until all unplanned changes are justified or reverted.
+Launch `code-reviewer` and `naming-reviewer` agents in parallel on the diff. Both must pass.
+
+**code-reviewer:**
+1. Provide the full `git diff HEAD` output and the `implementation_brief`.
+2. Wait for verdict.
+3. If `BLOCK`: show blocking issues to user. Do not proceed to QA until resolved.
+4. If `WARN`: show warnings, proceed to QA (issues tracked for next session).
+5. If `PASS`: proceed.
+
+**naming-reviewer:**
+1. Provide the full `git diff HEAD` output.
+2. Wait for verdict.
+3. If `BLOCK`: show violations with suggested names. Do not proceed until fixed or user overrides.
+4. If `WARN`: show warnings, proceed.
+5. If `PASS`: proceed.
+
+**Scope check (in addition to agents):**
+- Run `git diff HEAD --name-only` and compare against `implementation_brief.files_forecast`.
+- For any file NOT in the forecast: mark `[UNPLANNED]` and require a one-line justification.
+- Unplanned files without justification: BLOCK.
+
+**BLOCK** QA gate until both agents pass and all unplanned files are justified.
 
 ### GATE 4 — Pre-commit guard (when user issues EFFECTIVIZE_COMMIT)
-1. Run `git rev-parse --abbrev-ref HEAD` — verify HEAD is NOT a protected branch.
-2. Run `git diff HEAD --name-only` — verify no `.env.playbook`, secrets, or binary files are staged.
-3. Verify `CHANGELOG.md` has been updated in this run under `## [Unreleased]`.
-   Check that new entries exist (diff `CHANGELOG.md` against last commit).
-4. Verify changelog entries follow format rules: technical language, one line per change, max 100 chars.
-5. Verify commit message follows conventional format: `<type>(<scope>): [<JIRA_KEY>] <desc>`.
-6. **BLOCK** commit if any check fails. Report exactly which check failed and why.
+1. Launch `commit-reviewer` agent with the proposed commit message and staged diff.
+2. Wait for the agent's verdict.
+3. If `BLOCK`: show exactly which check failed. Do not run `effectivize_commit.sh`. Wait for fix.
+4. If `PASS`: run `effectivize_commit.sh` with the validated commit message.
+5. **BLOCK** commit execution until `commit-reviewer` returns PASS.
 
 ## Orchestration order
 0. **Memory recovery**: If Engram MCP is available, call `mem_context` filtered to this project
