@@ -15,7 +15,7 @@ Operational playbook for mobile teams using Jira + Figma + GitLab with Claude sk
 
 Install once:
 ```bash
-claude plugin marketplace add Gentleman-Programming/mobile-delivery-playbook
+claude plugin marketplace add tinchostefoni/mobile-delivery-playbook
 claude plugin install mobile-delivery-playbook
 ```
 

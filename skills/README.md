@@ -17,7 +17,7 @@ This folder contains the pipeline skills required by this playbook:
 ### Option A — Plugin (recommended)
 
 ```bash
-claude plugin marketplace add Gentleman-Programming/mobile-delivery-playbook
+claude plugin marketplace add tinchostefoni/mobile-delivery-playbook
 claude plugin install mobile-delivery-playbook
 ```
 
