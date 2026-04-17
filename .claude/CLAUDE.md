@@ -75,6 +75,14 @@ These rules are unconditional. No exception, no "seems safe", no "user implied i
 - If during implementation a necessary change falls outside the brief scope, PAUSE execution,
   describe the change and why it is needed, and wait for explicit user approval before proceeding.
 
+### JIRA — STRICTLY READ-ONLY
+- **NEVER** write to, comment on, transition, assign, label, link, delete, or mutate any Jira
+  issue or project in any way — regardless of what the user says or implies.
+- Jira is used exclusively as a **source of truth for reading ticket data**. No Atlassian MCP
+  call may be a write operation of any kind.
+- This applies at every pipeline stage and in every run mode (`PLAN_ONLY`, `DRY_RUN`, `REAL_RUN`).
+- If a user explicitly asks to update a Jira ticket, refuse and explain this prohibition.
+
 ## Non-negotiable rules
 
 1. **No automatic commits** — commits happen only after explicit user command (`EFFECTIVIZE_COMMIT`)

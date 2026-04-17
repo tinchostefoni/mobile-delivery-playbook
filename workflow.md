@@ -109,6 +109,10 @@ Recommended usage sequence:
    - rationale for any unplanned change
 
 ## 4) Execution sequence
+
+> **Jira is READ-ONLY.** The pipeline never writes to, comments on, transitions, or mutates
+> any Jira issue at any stage. `jira-intake` reads ticket data only.
+
 1. `jira-intake` -> `ticket_spec` (in-memory or artifact file based on `WRITE_ARTIFACTS`)
 2. `figma-intake` (if UI task) -> `design_spec`
 3. `spec-filler` -> `implementation_brief`
