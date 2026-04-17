@@ -16,10 +16,7 @@
         "name": "Martín Stefoni",
         "email": "mstefoni@zafirus.tech"
       },
-      "source": {
-        "type": "github",
-        "repo": "tinchostefoni/mobile-delivery-playbook"
-      },
+      "source": "./",
       "category": "productivity"
     }
   ]
