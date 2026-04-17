@@ -74,15 +74,27 @@ RUN_MODE: PLAN_ONLY
 - Technical guide: [technical-reference.md](technical-reference.md)
 - Scripts guide: [scripts/README.md](scripts/README.md)
 
-## MCPs
-- Required: Atlassian MCP, Figma MCP
-- Optional: GitLab MCP (for MR creation — covered by `scripts/create_mr.sh` without MCP)
-- Optional: Engram MCP (persistent memory across sessions — see below)
-- Notifications: Google Chat incoming webhook via `GOOGLE_CHAT_WEBHOOK_URL`
+## Required connectors
 
-Detailed setup and validation are in the technical guide.
+The pipeline needs Atlassian (Jira) and Figma connected to work. Both are built-in connectors in Claude Code and Cowork — no separate install needed.
 
-## Persistent memory with Engram (optional but recommended)
+**In Cowork**: open the Connectors section, find Atlassian and Figma, and authorize via OAuth. One-time per account.
+
+**In Claude Code CLI**: add them once from the terminal:
+```bash
+claude mcp add --transport http atlassian https://mcp.atlassian.com/mcp
+claude mcp add --transport http figma https://mcp.figma.com/mcp
+```
+Then authenticate each one with `/mcp` in Claude Code.
+
+Other MCPs:
+- **GitLab MCP**: optional — MR creation works without it via `scripts/create_mr.sh`
+- **Engram MCP**: optional — adds persistent memory across sessions (see below)
+- **Google Chat**: notifications via `GOOGLE_CHAT_WEBHOOK_URL` in `.env.playbook`
+
+Detailed setup in [technical-reference.md](technical-reference.md).
+
+## Persistent memory with Engram (optional — pipeline works without it)
 
 Engram gives the pipeline persistent memory across sessions — architectural decisions, discovered patterns, bugfix root causes — so future runs are not starting from scratch.
 
