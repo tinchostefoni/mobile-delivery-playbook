@@ -63,6 +63,78 @@ Read these files to understand the full system:
 ## Recommended MCPs
 
 - **GitLab MCP** — for MR creation and CI status checks
+- **Engram MCP** — persistent memory across sessions (`engram mcp` via stdio, see settings.json)
+
+## Memory (Engram)
+
+Engram provides persistent memory across sessions. When Engram MCP tools are available, follow this protocol unconditionally.
+
+### When to call `mem_context`
+- At the very start of every `pipeline-runner` run — before any other step.
+  Use the Jira project key as scope: `mem_context(project="<JIRA_PROJECT_KEY_lowercase>")`.
+  This recovers decisions, patterns, and discoveries from past runs on this project.
+- After any compaction or context reset — immediately call `mem_context` before continuing work.
+
+### When to call `mem_save`
+Call `mem_save` immediately after any of these events — do not batch or delay:
+
+- Architecture or design decision made for the target project
+- Bug fix completed with non-obvious root cause
+- Pattern or convention established (naming, structure, module boundary)
+- Non-obvious discovery about the codebase (gotcha, edge case, unexpected behavior)
+- Configuration change or environment constraint learned
+- User preference or constraint stated explicitly
+
+Use this format:
+```
+title: <Verb + what> (e.g. "Fixed N+1 query in UserList", "Chose coordinator pattern for LSF auth flow")
+type: decision | architecture | bugfix | pattern | config | discovery | learning
+scope: project
+topic_key: <stable key for evolving topics, e.g. "architecture/auth-model"> (optional but recommended)
+content:
+  **What**: One sentence — what was done or decided
+  **Why**: What motivated it
+  **Where**: Files or paths affected
+  **Learned**: Gotchas or surprises (omit if none)
+```
+
+Project isolation is automatic: Engram auto-detects the project from the git remote URL of the
+target repo. To force isolation, set `ENGRAM_PROJECT=<jira_project_key_lowercase>` in the shell
+before running. Memories saved with a given project name are only returned when querying that project.
+
+### When to call `mem_search`
+- When the user asks to recall something — any variation of "remember", "recall", "what did we do",
+  "how did we solve", "recordar", "acordate", or references to past work.
+  1. First call `mem_context` (fast, checks recent sessions)
+  2. If not found, call `mem_search` with relevant keywords
+  3. For full content, call `mem_get_observation` with the observation ID
+- Proactively before starting work that may overlap with prior sessions.
+- On first message of a pipeline run, if the user references a known pattern or module name.
+
+### Session close protocol (mandatory)
+Before ending a session or saying "done" / "listo" / "that's it", call `mem_session_summary`:
+
+```
+## Goal
+[What we were working on this session]
+
+## Instructions
+[User preferences or constraints — skip if none]
+
+## Discoveries
+- [Technical findings, gotchas, non-obvious learnings]
+
+## Accomplished
+- [Completed items with key details]
+
+## Next Steps
+- [What remains — for the next session]
+
+## Relevant Files
+- path/to/file — [what it does or what changed]
+```
+
+Skipping `mem_session_summary` means the next session starts completely blind. This is not optional.
 
 ## Git operations without GitLab MCP
 

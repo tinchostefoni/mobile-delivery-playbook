@@ -241,3 +241,73 @@ Available variables:
 | `GOOGLE_CHAT_WEBHOOK_URL` | `notify_google_chat.sh` | Google Chat incoming webhook URL |
 
 All scripts that need these values auto-source `.env.playbook` if present. No extra configuration needed.
+
+## 13) Persistent memory (Engram)
+
+Engram provides cross-session persistent memory for the pipeline. It runs as an MCP server
+and exposes 15 tools for saving, searching, and summarizing observations across sessions.
+
+### Configuration
+
+Engram MCP is pre-configured in `.claude/settings.json`:
+```json
+{
+  "mcpServers": {
+    "engram": { "command": "engram", "args": ["mcp"] }
+  }
+}
+```
+
+The binary must be installed separately on the host machine:
+- macOS/Linux: `brew install engram` (after `brew tap Gentleman-Programming/engram`)
+- Claude Code plugin: `claude plugin marketplace add Gentleman-Programming/engram && claude plugin install engram`
+
+### Project isolation
+
+Each target project gets its own isolated memory namespace automatically. Engram auto-detects
+the project name from the git remote origin URL of the target repo (extracts the repo name).
+
+Auto-detection priority chain:
+1. `--project` flag on the `engram mcp` command
+2. `ENGRAM_PROJECT` environment variable
+3. Git remote origin URL (extracts repo name)
+4. Git root directory name
+5. Current working directory basename
+
+To force explicit isolation, set `ENGRAM_PROJECT=<project_name>` in the shell environment.
+
+### Key tools used by pipeline-runner
+
+| Tool | When called |
+|------|------------|
+| `mem_context` | Start of every pipeline run — recovers past session state for this project |
+| `mem_save` | After architecture decisions, bugfixes, discovered patterns, config changes |
+| `mem_search` | When user asks to recall past work; proactively before overlapping tasks |
+| `mem_get_observation` | Full content of a specific observation by ID |
+| `mem_suggest_topic_key` | Before `mem_save` on evolving topics (e.g. architecture decisions) |
+| `mem_session_summary` | Mandatory at session close or before saying "done" / "listo" |
+
+### mem_save format
+
+```
+title: <Verb + what>
+type: decision | architecture | bugfix | pattern | config | discovery | learning
+scope: project
+topic_key: <stable key for evolving topics> (optional)
+content:
+  **What**: One sentence — what was done or decided
+  **Why**: What motivated it
+  **Where**: Files or paths affected
+  **Learned**: Gotchas or surprises (omit if none)
+```
+
+Full Memory Protocol is defined in `.claude/CLAUDE.md`.
+
+### After compaction
+
+If the context window is compacted (summarized to free space), the agent must:
+1. Immediately call `mem_session_summary` with the compacted summary content
+2. Then call `mem_context` to recover additional context from previous sessions
+3. Only then continue working
+
+This prevents losing all progress accumulated before the compaction.

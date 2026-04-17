@@ -123,15 +123,26 @@ Use `$PLAYBOOK_ROOT` as prefix for all runtime references below.
 - `json`: single structured object with `status`, `code`, `field`, `message`, `warnings`.
 
 ## Orchestration order
-0. For `PLAN_ONLY`, stop after planning artifacts, generate `run_summary.md`, send completion notification, and do not run implementation/command gating.
+0. **Memory recovery**: If Engram MCP is available, call `mem_context` filtered to this project
+   before any other step — to recover past decisions, patterns, and discoveries.
+   Then load saved pipeline state (resume check).
+   For `PLAN_ONLY`, stop after planning artifacts, generate `run_summary.md`, send completion
+   notification, and do not run implementation/command gating.
 1. Run `jira-intake` → save state (`step=jira-intake`, `status=completed`)
 2. Run `figma-intake` when Figma fields are provided → save state (`step=figma-intake`, `status=completed`)
 3. Run `spec-filler` → save state (`step=spec-filler`, `status=completed`)
+   - **mem_save**: Save the implementation approach as a `decision` with the spec summary
+     (architecture choices, key constraints, affected modules) using `topic_key: "spec/<JIRA_KEY>"`.
 4. Run `dev-executor` → save state (`step=dev-executor`, `status=completed`)
+   - **mem_save** after each non-obvious implementation decision, bugfix root cause, or discovered
+     pattern — use `type: decision | bugfix | pattern | discovery` accordingly.
 5. Run local/relevant tests and QA gate checks
+   - **mem_save** any test failure root causes that were non-obvious, using `type: bugfix`.
 6. Update changelog from real code diff
 7. Run `qa-retro` → save state (`step=qa-retro`, `status=completed`)
 8. Send Google Chat notifications per workflow policy
+9. **Memory close**: At end of session (after user command or when saying "done"/"listo"),
+   call `mem_session_summary` per protocol in `CLAUDE.md`. This is mandatory.
 
 Save state after each step using:
 ```bash

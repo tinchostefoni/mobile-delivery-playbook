@@ -62,9 +62,38 @@ TECH_CONTEXT: |
 ## MCPs
 - Required: Atlassian MCP, Figma MCP
 - Optional: GitLab MCP (for MR creation — covered by `scripts/create_mr.sh` without MCP)
+- Optional: Engram MCP (persistent memory across sessions — see below)
 - Notifications: Google Chat incoming webhook via `GOOGLE_CHAT_WEBHOOK_URL`
 
 Detailed setup and validation are in the technical guide.
+
+## Persistent memory with Engram (optional but recommended)
+
+Engram gives the pipeline persistent memory across sessions — architectural decisions, discovered patterns, bugfix root causes — so future runs are not starting from scratch.
+
+**Install Engram** (once, on your machine):
+```bash
+# macOS/Linux via Homebrew
+brew tap Gentleman-Programming/engram
+brew install engram
+
+# Or via plugin in Claude Code
+claude plugin marketplace add Gentleman-Programming/engram
+claude plugin install engram
+```
+
+**Register the MCP server** — already configured in `.claude/settings.json`:
+```json
+{
+  "mcpServers": {
+    "engram": { "command": "engram", "args": ["mcp"] }
+  }
+}
+```
+
+**Project isolation is automatic.** Engram auto-detects the project name from the git remote URL of the target repo. Memories are scoped per project — running the pipeline on `LSF` and `MAPP` in different sessions keeps their memories fully separate.
+
+The Memory Protocol (when/how to save, session close, post-compaction recovery) is defined in `.claude/CLAUDE.md` and applied by `pipeline-runner` automatically when Engram MCP tools are available.
 
 ## Secrets setup (optional but recommended)
 
