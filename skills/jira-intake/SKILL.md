@@ -29,3 +29,5 @@ Use this skill when a user provides Jira links/keys and wants structured intake.
 ## Constraints
 - Do not invent missing facts.
 - Keep output aligned to real Jira data, not assumptions unless tagged.
+- **Jira is READ-ONLY.** Never write, comment, transition, assign, or mutate any Jira issue in any way.
+  Any Atlassian MCP calls must be read operations only. This restriction applies unconditionally.
