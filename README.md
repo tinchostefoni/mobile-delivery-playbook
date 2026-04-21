@@ -73,6 +73,7 @@ RUN_MODE: PLAN_ONLY
 - Contracts: [contracts/README.md](contracts/README.md)
 - Technical guide: [technical-reference.md](technical-reference.md)
 - Scripts guide: [scripts/README.md](scripts/README.md)
+- Bundled dependencies: [BUNDLED.md](BUNDLED.md)
 
 ## Required connectors
 
@@ -90,9 +91,27 @@ Then authenticate each one with `/mcp` in Claude Code.
 Other MCPs:
 - **GitLab MCP**: optional — MR creation works without it via `scripts/create_mr.sh`
 - **Engram MCP**: optional — adds persistent memory across sessions (see below)
+- **Apple Docs MCP**: optional — Apple Developer Documentation + WWDC transcripts for arch/code review (see below)
 - **Google Chat**: notifications via `GOOGLE_CHAT_WEBHOOK_URL` in `.env.playbook`
 
 Detailed setup in [technical-reference.md](technical-reference.md).
+
+## Apple Docs MCP (optional — enhances arch and code review)
+
+Gives `arch-reviewer` and `code-reviewer` access to the full Apple Developer Documentation and WWDC transcripts (2014–2025). No authentication required, zero setup beyond Node.js.
+
+**No install needed.** The MCP server runs on demand via `npx`. Already configured in `.claude/settings.json`:
+```json
+{
+  "mcpServers": {
+    "apple-docs": { "command": "npx", "args": ["-y", "@kimsungwhee/apple-docs-mcp"] }
+  }
+}
+```
+
+When available, the review agents can verify API usage against official docs, look up deprecations, and check WWDC session guidance — without leaving the pipeline session.
+
+Source: [kimsungwhee/apple-docs-mcp](https://github.com/kimsungwhee/apple-docs-mcp)
 
 ## Persistent memory with Engram (optional — pipeline works without it)
 

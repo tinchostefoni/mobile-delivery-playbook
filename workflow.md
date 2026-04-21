@@ -116,18 +116,19 @@ Recommended usage sequence:
 1. `jira-intake` -> `ticket_spec` (in-memory or artifact file based on `WRITE_ARTIFACTS`)
 2. `figma-intake` (if UI task) -> `design_spec`
 3. `spec-filler` -> `implementation_brief`
-4. `dev-executor` -> code changes + `implementation_result` (skip when `PLAN_ONLY`)
+   → **`PLAN_ONLY` stops here**: generate `run_summary.md`, send `PLAN_ONLY_DONE` notification, and stop.
+   No code changes, no commit/MR actions, no qa-retro.
+4. `dev-executor` -> code changes + `implementation_result`
 5. Run local/relevant tests
 6. QA validation
 7. Update `CHANGELOG.md` under `Unreleased` from real code diff
 8. `qa-retro` -> `qa_result` (`merge_gates` + `mergeable`)
-9. If `RUN_MODE=PLAN_ONLY`, generate `run_summary.md`, send `PLAN_ONLY_DONE` notification, and stop.
-10. Send `READY_FOR_REVIEW` notification (non-PLAN_ONLY only)
-11. Wait for user command in this same chat (non-PLAN_ONLY only):
+9. Send `READY_FOR_REVIEW` notification (non-PLAN_ONLY only)
+10. Wait for user command in this same chat (non-PLAN_ONLY only):
 - `EFFECTIVIZE_COMMIT`
 - `CREATE_MR`
 - `EFFECTIVIZE_COMMIT_AND_CREATE_MR`
-12. If command includes MR creation, run `scripts/create_mr.sh` (no GitLab MCP required):
+11. If command includes MR creation, run `scripts/create_mr.sh` (no GitLab MCP required):
    - Strategy 1: `glab CLI` (if installed and authenticated)
    - Strategy 2: `curl + GitLab API` using `GITLAB_TOKEN` from `.env.playbook`
    - Strategy 3: manual fallback package in response:
@@ -135,13 +136,13 @@ Recommended usage sequence:
      - source/target branches
      - direct create-MR URL (pre-filled query params)
      - concise failure reason
-13. CI runs in GitLab MR (external gate)
-14. For non-`PLAN_ONLY` runs, generate `run_summary.md` at pipeline close (default: `<REPO_ROOT>/.playbook/pipeline-runner/<JIRA_KEY>/run_summary.md`).
-15. If CI green + QA approved + changelog updated -> `FINALIZED` notification
-16. `run_summary.md` is mode-aware:
+12. CI runs in GitLab MR (external gate)
+13. For non-`PLAN_ONLY` runs, generate `run_summary.md` at pipeline close (default: `<REPO_ROOT>/.playbook/pipeline-runner/<JIRA_KEY>/run_summary.md`).
+14. If CI green + QA approved + changelog updated -> `FINALIZED` notification
+15. `run_summary.md` is mode-aware:
    - `PLAN_ONLY`: plan, forecast files, risks/unknowns, next action.
    - `REAL_RUN/DRY_RUN`: scope, changed files, validation, blockers, next action.
-17. For `REAL_RUN/DRY_RUN`, run summary must explicitly document:
+16. For `REAL_RUN/DRY_RUN`, run summary must explicitly document:
    - planned vs executed diff
    - architecture intent alignment
    - every unplanned change with technical rationale

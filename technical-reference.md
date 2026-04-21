@@ -393,3 +393,91 @@ git commit
 
 GGA is git-native and runs independently of the pipeline agent. Gate 4 is agent-driven and
 enforces playbook-level rules that GGA does not cover.
+
+## 15) Apple Docs MCP (optional)
+
+Provides `arch-reviewer` and `code-reviewer` with direct access to Apple Developer Documentation and WWDC session transcripts (2014–2025). No authentication required.
+
+### Setup
+
+No install needed — the server runs on demand via `npx`. Add to `.claude/settings.json` (already included in this repo):
+
+```json
+"apple-docs": {
+  "command": "npx",
+  "args": ["-y", "@kimsungwhee/apple-docs-mcp"]
+}
+```
+
+For Claude Code CLI, register it once:
+```bash
+claude mcp add apple-docs -- npx -y @kimsungwhee/apple-docs-mcp
+```
+
+### Available tools (15 total)
+
+| Tool | Description |
+|------|-------------|
+| `search_apple_documentation` | Full-text search across Apple docs |
+| `get_documentation` | Fetch a specific doc page by URL |
+| `get_wwdc_sessions` | List WWDC sessions by year/topic |
+| `search_wwdc_sessions` | Search WWDC transcripts by keyword |
+| `get_wwdc_transcript` | Fetch full transcript of a WWDC session |
+| `get_technologies` | List all documented Apple frameworks |
+| + 9 more | (deprecations, related docs, sample code, etc.) |
+
+### How it fits in the pipeline
+
+`arch-reviewer` and `code-reviewer` agents can call these tools automatically when the MCP is available:
+
+- **arch-reviewer (Gate 2)**: Verify that proposed APIs exist and are not deprecated. Check framework availability by OS version.
+- **code-reviewer (Gate 3)**: Validate API usage against official docs. Cross-reference WWDC guidance on concurrency, memory, or SwiftUI patterns.
+
+The pipeline degrades gracefully — if the MCP is not running, agents continue without it.
+
+Source: [kimsungwhee/apple-docs-mcp](https://github.com/kimsungwhee/apple-docs-mcp)
+
+
+## 16) XcodeBuildMCP — expanded usage
+
+XcodeBuildMCP communicates with the user's macOS Xcode environment via MCP protocol, allowing the pipeline to run real builds, tests, screenshots, and simulator actions directly from within the agent session.
+
+### Pipeline integration
+
+| Stage | Tools used | Purpose |
+|-------|-----------|---------|
+| **dev-executor** (after implementation) | `session_show_defaults`, `discover_projs`, `build_sim` | Compilation gate — confirm the implementation compiles before producing `implementation_result` |
+| **qa-retro** (Gate 5) | `session_show_defaults`, `boot_sim`, `build_sim`, `test_sim`, `get_coverage_report`, `launch_app_logs_sim`, `screenshot`, `snapshot_ui` | Real QA evidence — green build, test pass/fail, coverage %, launch logs, visual screenshot, view hierarchy |
+
+### Session defaults
+
+Before running any build or test tool, confirm the project is configured:
+
+```
+session_show_defaults()  →  shows current projectPath/workspacePath, scheme, simulator
+session_set_defaults(workspacePath, scheme, simulatorName)  →  set once per session
+```
+
+If defaults are missing, run `discover_projs(workspaceRoot: <REPO_PATH>)` to find `.xcworkspace` / `.xcodeproj` files, then call `session_set_defaults`.
+
+### Tool reference
+
+| Tool | Key parameters | Returns |
+|------|---------------|---------|
+| `discover_projs` | `workspaceRoot`, `maxDepth?` | List of project/workspace paths |
+| `session_show_defaults` | — | Current scheme, simulator, project path |
+| `session_set_defaults` | `workspacePath\|projectPath`, `scheme`, `simulatorName` | Confirmation |
+| `boot_sim` | — | Boots the configured simulator |
+| `build_sim` | `extraArgs?` | Build output + error log |
+| `test_sim` | `extraArgs?`, `testRunnerEnv?` | Test results + xcresult path |
+| `get_coverage_report` | `xcresultPath`, `showFiles?`, `target?` | Coverage % summary |
+| `get_file_coverage` | `xcresultPath`, `file`, `showLines?` | Per-file line coverage |
+| `launch_app_logs_sim` | `args?`, `env?` | App launch + startup log output |
+| `screenshot` | `returnFormat?` | Screen capture (base64 or file) |
+| `snapshot_ui` | — | Accessibility/view hierarchy snapshot |
+
+### Graceful degradation
+
+If XcodeBuildMCP tools are unavailable (e.g., user is not on macOS or Xcode is not installed):
+- `dev-executor`: document skipped in `implementation_result.validations`
+- `qa-retro`: set `all_tests_green: false` unless the user provides CI green evidence from another source; document each skipped step in `qa_result.validations`

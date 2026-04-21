@@ -11,6 +11,13 @@ allowed-tools: Bash, Read, Write
 
 Use this skill when a user provides Figma URLs/node IDs and needs design context for implementation.
 
+## Skills available
+
+If **`figma-to-swiftui`** is available in the session, load it alongside this skill when the
+task is a UI implementation (not just design inspection). It provides the full MCP workflow
+(URL parsing, `get_design_context`, `get_screenshot`, `get_variable_defs`, asset handling,
+layout translation rules) for producing production-ready SwiftUI from the extracted design spec.
+
 ## Input
 - Figma file URL
 - Node IDs (or infer from URL)

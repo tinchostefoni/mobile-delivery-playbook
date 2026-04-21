@@ -81,8 +81,17 @@ Mode behavior:
 7. If `AUTO_DETECT_CONTEXT=true`, auto-detect project context and write:
    - `.playbook/project_context.auto.md`
    - `.playbook/project_context_paths.auto.txt`
+   Also run framework detection:
+   ```bash
+   # SwiftData
+   grep -r --include="*.swift" -l "import SwiftData\|@Model" <REPO_PATH>/Sources 2>/dev/null | head -1
+   # Core Data
+   grep -r --include="*.swift" -l "NSManagedObject\|NSPersistentContainer\|@NSManaged" <REPO_PATH>/Sources 2>/dev/null | head -1
+   ```
+   Set `pipeline.uses_swiftdata: true` if SwiftData match found, otherwise `false`.
+   Set `pipeline.uses_coredata: true` if Core Data match found, otherwise `false`.
 8. If `ARCHITECTURE_OVERRIDE` is provided, use it as architecture source of truth and treat detector output as fallback.
-9. If `AUTO_DETECT_CONTEXT=false`, do not overwrite auto-detected context files.
+9. If `AUTO_DETECT_CONTEXT=false`, do not overwrite auto-detected context files. Still run SwiftData detection and write `pipeline.uses_swiftdata`.
 10. Write/update `.playbook/playbook.config.yml` with:
    - `project.name`
    - `project.repo_path`
@@ -92,6 +101,8 @@ Mode behavior:
    - `pipeline.target_base_branch`
    - `pipeline.notify_google_chat`
    - `pipeline.auto_detect_context`
+   - `pipeline.uses_swiftdata` (auto-detected; user can override in UPDATE)
+   - `pipeline.uses_coredata` (auto-detected; user can override in UPDATE)
    - `pipeline.write_artifacts`
    - `pipeline.artifacts_path` only when `WRITE_ARTIFACTS=true`
    - `context.architecture_override` when provided
@@ -117,6 +128,8 @@ pipeline:
   target_base_branch: "development"
   notify_google_chat: true
   auto_detect_context: true
+  uses_swiftdata: false        # auto-detected; set to true if project uses @Model / SwiftData
+  uses_coredata: false         # auto-detected; set to true if project uses NSManagedObject / NSPersistentContainer
   write_artifacts: false
   artifacts_path: "/absolute/path/to/repo/.playbook/pipeline-runner"
 context:
