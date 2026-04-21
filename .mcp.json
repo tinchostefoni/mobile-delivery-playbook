@@ -15,6 +15,10 @@
     "apple-docs": {
       "command": "npx",
       "args": ["-y", "@kimsungwhee/apple-docs-mcp"]
+    },
+    "xcode-build-mcp": {
+      "command": "npx",
+      "args": ["-y", "xcode-build-mcp"]
     }
   }
 }

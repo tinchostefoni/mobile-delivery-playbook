@@ -92,6 +92,7 @@ Other MCPs:
 - **GitLab MCP**: optional — MR creation works without it via `scripts/create_mr.sh`
 - **Engram MCP**: optional — adds persistent memory across sessions (see below)
 - **Apple Docs MCP**: optional — Apple Developer Documentation + WWDC transcripts for arch/code review (see below)
+- **XcodeBuildMCP**: optional — real builds, tests, coverage, screenshots and simulator control from within the pipeline (see below)
 - **Google Chat**: notifications via `GOOGLE_CHAT_WEBHOOK_URL` in `.env.playbook`
 
 Detailed setup in [technical-reference.md](technical-reference.md).
@@ -112,6 +113,27 @@ Gives `arch-reviewer` and `code-reviewer` access to the full Apple Developer Doc
 When available, the review agents can verify API usage against official docs, look up deprecations, and check WWDC session guidance — without leaving the pipeline session.
 
 Source: [kimsungwhee/apple-docs-mcp](https://github.com/kimsungwhee/apple-docs-mcp)
+
+## XcodeBuildMCP (optional — enables real simulator QA)
+
+Gives `dev-executor` and `qa-retro` direct access to your Xcode environment: compile the implementation, run the full test suite, get coverage reports, take screenshots, and capture the view hierarchy — all without leaving the pipeline session.
+
+**No install needed.** The MCP server runs on demand via `npx`. Already configured in `.mcp.json`:
+```json
+{
+  "mcpServers": {
+    "xcode-build-mcp": { "command": "npx", "args": ["-y", "xcode-build-mcp"] }
+  }
+}
+```
+
+Requires macOS with Xcode installed. When available:
+- **`dev-executor`** runs `build_sim` as a compilation gate — won't produce `implementation_result` if the build fails.
+- **`qa-retro`** runs `build_sim` + `test_sim` + `get_coverage_report` + `screenshot` + `snapshot_ui` — merge gates are enforced against real results, not declared evidence.
+
+The pipeline degrades gracefully when XcodeBuildMCP is unavailable: each skipped step is documented in the output artifacts.
+
+Source: [XcodeBuildMCP](https://github.com/cameroncooke/XcodeBuildMCP)
 
 ## Persistent memory with Engram (optional — pipeline works without it)
 
